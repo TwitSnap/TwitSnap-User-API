@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NEO4J_PROTOCOL = bolt
+      - NEO4J_HOST_PORT = localhost:7474
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=12345678
+    depends_on:
+      - db
+
+  db:
+    image: neo4j:5.23.0-community-bullseye
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/12345678
