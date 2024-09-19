@@ -1,17 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Response
-from DTOs.user_register import UserRegistration
-from services.user_service import user_service
+from DTOs.user_register import UserRegister
+from services.session_service import session_service
 from DTOs.user_login import UserLogin
 
 class SessionController:
-    def __init__(self, user_service):
-        self.user_service = user_service
+    def __init__(self, session_service):
+        self.session_service = session_service
 
-    async def register(self, user_register_data: UserRegistration):
+    async def register(self, user_register_data: UserRegister):
         try:
-            user, password = await user_service.create_user(user_register_data)
-            return (user, password)
-
+            return await session_service.register(user_register_data)
         except HTTPException as e:
             raise HTTPException(self, status_code=e.status_code, detail=e.detail)
         except Exception as e:
@@ -19,17 +17,16 @@ class SessionController:
 
     async def login(self, user_login_data: UserLogin):
         try:
-            user = await user_service.get_user(user_login_data.mail)
-            # apicall a auth user.id
-            return user
+            return await session_service.login(user_login_data)
+        
         except HTTPException as e:
             raise HTTPException(status_code=e.status_code, detail=e.detail)
         except Exception as e:
             print(e)
-
+    
     async def login_google(self):
         return
 
 
-session_controller = SessionController(user_service)
+session_controller = SessionController(session_service)
 

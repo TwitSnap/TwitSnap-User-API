@@ -3,11 +3,11 @@ from neomodel import StructuredNode, StringProperty, UniqueIdProperty, Relations
 
 class User(StructuredNode):
     uid = UniqueIdProperty()
-    username = StringProperty
-    mail = StringProperty
-    country = StringProperty(default='')
+    username = StringProperty() 
+    mail = StringProperty(unique_index = True)
+    country = StringProperty(default = '')
     phone = StringProperty()
-    description = StringProperty(default='')
+    description = StringProperty(default = '')
 
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')

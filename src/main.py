@@ -4,4 +4,4 @@ from routes.routes import router
 
 connect_to_database()
 app = FastAPI()
-app.include_router(router, prefix="/api")
+app.include_router(router)
