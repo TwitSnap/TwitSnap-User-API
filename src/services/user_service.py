@@ -1,6 +1,6 @@
 from models.user import User
 from repositories.user_repository import user_repository
-from DTOs.register_request import UserRegistration
+from DTOs.user_register import UserRegistration
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
