@@ -8,6 +8,6 @@ class User(StructuredNode):
     country = StringProperty(default = '')
     phone = StringProperty()
     description = StringProperty(default = '')
-
+    
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')

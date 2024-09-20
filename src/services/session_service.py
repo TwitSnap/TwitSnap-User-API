@@ -3,6 +3,9 @@ from DTOs.user_register import UserRegister
 from DTOs.user_login import UserLogin
 from DTOs.user_register_auth import UserRegisterAuth
 from DTOs.user_login_auth import UserLoginAuth
+from fastapi import Request
+from fastapi.responses import RedirectResponse
+from config.db import oauth
 # import httpx
 
 class SessionService:
@@ -24,7 +27,14 @@ class SessionService:
         #     url = "auth"
         #     auth_response = await client.post(url, json={mail:{user_login_auth.mail}})
 
-    async def login_google(self):
-            return
+    async def login_google(self, request: Request):
+        redirect_uri = "http://localhost:8006/login/google/callback"
+        return await oauth.google.authorize_redirect(request, redirect_uri)
+
+    async def auth_google(self, request: Request):
+        token = await oauth.google.authorize_access_token(request)
+
+        return RedirectResponse(url="https://x.com") # devolver jwt token con los datos
+
 
 session_service = SessionService()

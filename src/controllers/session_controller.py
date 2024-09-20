@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Response
+from fastapi import Request, HTTPException, status, Response
 from DTOs.user_register import UserRegister
 from services.session_service import session_service
 from DTOs.user_login import UserLogin
@@ -24,8 +24,11 @@ class SessionController:
         except Exception as e:
             print(e)
     
-    async def login_google(self):
-        return
+    async def login_google(self, request: Request):
+        return await session_service.login_google(request)
+
+    async def auth_google(self, request: Request):
+        return await session_service.auth_google(request)
 
 
 session_controller = SessionController(session_service)

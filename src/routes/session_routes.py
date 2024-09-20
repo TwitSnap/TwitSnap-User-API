@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Request
 from controllers.session_controller import session_controller
 from DTOs.user_login import UserLogin
 from DTOs.user_register import UserRegister
@@ -15,6 +15,10 @@ async def login(user_login_data: UserLogin):
     return await session_controller.login(user_login_data)
 
 @session_router.get("/login/google")
-async def login_google():
-    return await session_controller.login_google()
+async def login_google(request: Request):
+    return await session_controller.login_google(request)
+
+@session_router.get('/login/google/callback')
+async def auth_google(request: Request):
+    return await session_controller.auth_google(request)
 
