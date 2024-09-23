@@ -1,4 +1,4 @@
-from neomodel import StructuredNode, StringProperty, UniqueIdProperty, RelationshipTo
+from neomodel import StructuredNode, StringProperty, UniqueIdProperty, RelationshipTo, BooleanProperty
 
 class User(StructuredNode):
     uid = UniqueIdProperty()
@@ -8,5 +8,6 @@ class User(StructuredNode):
     phone = StringProperty()
     description = StringProperty(default = '')
     account_type = StringProperty ()
+    verified = BooleanProperty(default = False)
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')

@@ -24,5 +24,5 @@ class UserRepository:
 
     def get_all_users (self):
         return User.nodes.all()
-        
+
 user_repository = UserRepository()

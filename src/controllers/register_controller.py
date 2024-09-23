@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException, status, Response
+from fastapi import Request, HTTPException
 from DTOs.register.user_register import UserRegister
 from services.register_service import register_service
 
@@ -10,7 +10,7 @@ class RegisterController:
         try:
             return await self.register_service.register(user_register_data, request )
         except HTTPException as e:
-            raise HTTPException(self, status_code=e.status_code, detail=e.detail)
+            raise HTTPException(status_code = e.status_code, detail = e.detail)
         except Exception as e:
             print(e)
 
@@ -18,7 +18,7 @@ class RegisterController:
         try:
             return await self.register_service.register_with_google(request)
         except HTTPException as e:
-            raise HTTPException(self, status_code=e.status_code, detail=e.detail)
+            raise HTTPException(status_code = e.status_code, detail = e.detail)
         except Exception as e:
             print(e)
     
@@ -26,7 +26,7 @@ class RegisterController:
         try:
             return await self.register_service.register_with_google_callback(request)
         except HTTPException as e:
-            raise HTTPException(self, status_code=e.status_code, detail=e.detail)
+            raise HTTPException(status_code= e.status_code, detail=e.detail)
         except Exception as e:
             print(e)
 

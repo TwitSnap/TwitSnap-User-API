@@ -9,9 +9,9 @@ register_router = APIRouter()
 async def register(user_register_data: UserRegister, request : Request):
     return await register_controller.register(user_register_data, request)
 
-# @register_router.get("/google")
-# async def register_with_google(request: Request):
-#     return await register_controller.register_with_google(request)
+@register_router.get("/google")
+async def register_with_google(request: Request):
+    return await register_controller.register_with_google(request)
 
 @register_router.get("/google/callback")
 async def register_with_google_callback(request :Request):

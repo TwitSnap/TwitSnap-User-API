@@ -1,11 +1,12 @@
 from models.user import User
 from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
+from fastapi import HTTPException
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
 
-    async def create_user(self, register_request: UserRegister):
+    async def create_user(self, register_request: UserRegister):        
         new_user = User(username = register_request.username,
                         email = register_request.email,
                         phone = register_request.phone,)
@@ -17,12 +18,21 @@ class UserService:
                         uid = id,)
         return self.user_repository.create_user(new_user)
     
-    async def get_user_id_by_email(self, mail):
-        return  self.user_repository.find_user_by_email(mail).uid
+    async def get_user_id_by_email(self, email):
+        user = self.user_repository.find_user_by_email(email)
+        if user is None:
+            raise HTTPException(status_code=404, detail = "User not found")
+        return user.uid
     
     async def get_user_by_id(self, id):
-        return self.user_repository.find_user_by_id(id)
+        user = self.user_repository.find_user_by_id(id)
+        if user is None:
+            raise HTTPException(status_code=404, detail = "User not found")
+        return user.uid
     
+    async def exists_user_by_email(self, email):
+        return self.user_repository.find_user_by_email(email) is not None
+           
     async def get_all_users(self):
         return self.user_repository.get_all_users()
     
