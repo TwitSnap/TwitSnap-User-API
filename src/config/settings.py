@@ -1,11 +1,9 @@
-# db/database.py
 import os
-from dotenv import load_dotenv
 from neomodel import config, db
+from dotenv import load_dotenv
 from authlib.integrations.starlette_client import OAuth, OAuthError
 
 load_dotenv()
-
 oauth = OAuth()
 oauth.register(
     name = 'google',
@@ -23,10 +21,12 @@ def get_database_url():
     return f"{protocol}://{username}:{password}@{url}"
 
 def connect_to_database():
-    config.DATABASE_URL = get_database_url()
     try:
-        db.cypher_query("MATCH (n) RETURN n LIMIT 1")
-        print("Conexión exitosa a la base de datos.")
+         config.DATABASE_URL = get_database_url()
+         print(config.DATABASE_URL)
+         db.cypher_query("MATCH (n) RETURN n LIMIT 1")
+         print("Conexión exitosa a la base de datos.")
     except Exception as e:
         print("Error de conexión:", e)
 
+connect_to_database()

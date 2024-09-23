@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from config.db import connect_to_database
+from config.settings import db
 from routes.routes import router
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 
-connect_to_database()
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -18,3 +18,8 @@ app.add_middleware(
     secret_key='SECRET_KEY',
 )
 app.include_router(router)
+
+# TODO:
+# - conectar con microservicio de auth
+# - validaciones
+# - tests

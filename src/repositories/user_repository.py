@@ -8,11 +8,21 @@ class UserRepository:
     def create_user(self, user)-> User:
         return user.save()
     
-    def find_user_by_mail(self, mail):
+    def find_user_by_email(self, email):
         try:
-            user = User.nodes.get( mail = mail)
+            user = User.nodes.get( email = email)
             return user
         except User.DoesNotExist:
             return None
+        
+    def find_user_by_id (self, id ):
+        try:
+            user = User.nodes.get( uid = id)
+            return user
+        except User.DoesNotExist:
+            return None
+
+    def get_all_users (self):
+        return User.nodes.all()
         
 user_repository = UserRepository()

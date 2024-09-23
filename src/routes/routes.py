@@ -1,6 +1,8 @@
 from fastapi import APIRouter
-from routes.session_routes import session_router
+from routes.register_routes import register_router
+from routes.user_routes import user_router
 
 router = APIRouter()
 
-router.include_router(session_router)
+router.include_router(register_router, prefix='/v1/register')
+router.include_router(user_router, prefix = '/v1/users')
