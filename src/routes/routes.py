@@ -2,7 +2,9 @@ from fastapi import APIRouter
 from routes.register_routes import register_router
 from routes.user_routes import user_router
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/v1"
+)
 
-router.include_router(register_router, prefix='/v1/register')
-router.include_router(user_router, prefix = '/v1/users')
+router.include_router(register_router, prefix='/register')
+router.include_router(user_router, prefix = '/users')

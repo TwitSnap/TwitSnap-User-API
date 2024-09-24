@@ -1,7 +1,8 @@
 from models.user import User
 from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
-from fastapi import HTTPException
+from exceptions.resource_not_found_exception import ResourceNotFoundException
+from exceptions.conflict_exception import ConflictException 
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
@@ -21,14 +22,14 @@ class UserService:
     async def get_user_id_by_email(self, email):
         user = self.user_repository.find_user_by_email(email)
         if user is None:
-            raise HTTPException(status_code=404, detail = "User not found")
+            raise ResourceNotFoundException(detail=f"User not found with email: {email}")
         return user.uid
     
     async def get_user_by_id(self, id):
         user = self.user_repository.find_user_by_id(id)
         if user is None:
-            raise HTTPException(status_code=404, detail = "User not found")
-        return user.uid
+            raise ResourceNotFoundException(detail=f"User not found with id: {id}")
+        return user
     
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None

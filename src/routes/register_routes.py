@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, status
 from controllers.register_controller import register_controller
 from DTOs.register.user_register import UserRegister
 
 
 register_router = APIRouter()
 
-@register_router.post("/")
+@register_router.post("/", status_code = status.HTTP_201_CREATED)
 async def register(user_register_data: UserRegister, request : Request):
     return await register_controller.register(user_register_data, request)
 

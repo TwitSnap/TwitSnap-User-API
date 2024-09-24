@@ -22,11 +22,11 @@ def get_database_url():
 
 def connect_to_database():
     try:
-         config.DATABASE_URL = get_database_url()
-         print(config.DATABASE_URL)
-         db.cypher_query("MATCH (n) RETURN n LIMIT 1")
-         print("Conexión exitosa a la base de datos.")
+        config.DATABASE_URL = get_database_url()
+        print(f"Connecting to database at {config.DATABASE_URL}")
+        db.cypher_query("MATCH (n) RETURN n LIMIT 1")
+        print("Successfully connected to the database.")
     except Exception as e:
-        print("Error de conexión:", e)
-
+        print("Database connection error:", e)
+        
 connect_to_database()
