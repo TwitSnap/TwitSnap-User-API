@@ -6,7 +6,7 @@ from models.user import User
 
 class ExceptionHandler:
     @staticmethod
-    async def handle_exception(req: Request, exc: Exception):
+    async def handle_exception(exc: Exception):
 
         if isinstance(exc, ResourceNotFoundException):
             return JSONResponse(

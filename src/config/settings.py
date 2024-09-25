@@ -29,4 +29,3 @@ def connect_to_database():
     except Exception as e:
         print("Database connection error:", e)
         
-connect_to_database()

@@ -5,7 +5,7 @@ from DTOs.register.user_register import UserRegister
 
 register_router = APIRouter()
 
-@register_router.post("/", status_code = status.HTTP_201_CREATED)
+@register_router.post("/", status_code=status.HTTP_201_CREATED)
 async def register(user_register_data: UserRegister, request : Request):
     return await register_controller.register(user_register_data, request)
 
