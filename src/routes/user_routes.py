@@ -22,6 +22,6 @@ async def edit_my_user (new_user_data: EditUser ,user_id: str = Depends(get_curr
 async def get_user_by_id ( id : str):
     return await user_controller.get_user_by_id(id)
 
-@user_router.get("/", status_code= status.HTTP_200_OK)
-async def get_all_users ():
-    return await user_controller.get_all_users()
+# @user_router.get("/", status_code= status.HTTP_200_OK)
+# async def get_all_users ():
+#     return await user_controller.get_all_users()

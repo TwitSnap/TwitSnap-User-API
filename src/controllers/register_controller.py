@@ -1,4 +1,5 @@
 from fastapi import Request, HTTPException
+from DTOs.register.google_register import GoogleRegister
 from DTOs.register.user_register import UserRegister
 from services.register_service import register_service
 from exceptions.exception_handler import ExceptionHandler
@@ -13,9 +14,9 @@ class RegisterController:
         except Exception as e:
              return await ExceptionHandler.handle_exception(e)
         
-    async def register_with_google(self, request: Request):
+    async def register_with_google(self, token : GoogleRegister):
         try:
-            return await self.register_service.register_with_google(request)
+            return await self.register_service.register_with_google(token)
         except Exception as e:
              return await ExceptionHandler.handle_exception(e)
 
