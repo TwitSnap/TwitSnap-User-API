@@ -1,6 +1,8 @@
 from DTOs.register.user_register import UserRegister
+from DTOs.user.edit_user import EditUser
 from services.user_service import user_service
-from exceptions.exception_handler import ExceptionHandler  # Assuming you have an ExceptionHandler
+from exceptions.exception_handler import ExceptionHandler
+from utils.decode_token import get_current_user  # Assuming you have an ExceptionHandler
 
 class UserController:
     def __init__(self, user_service):
@@ -29,5 +31,11 @@ class UserController:
             return await self.user_service.get_all_users()
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-    
+        
+    async def edit_user_by_id(self, req: EditUser, id: str):
+        try:
+            return await self.user_service.edit_user_by_id(req, id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+        
 user_controller = UserController(user_service)

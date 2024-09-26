@@ -24,5 +24,8 @@ class UserRepository:
 
     def get_all_users (self):
         return User.nodes.all()
+    
+    def update_user(self, user):
+        return user.save()
 
 user_repository = UserRepository()

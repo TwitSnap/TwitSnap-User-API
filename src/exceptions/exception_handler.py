@@ -1,5 +1,6 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from exceptions.no_auth_exception import NoAuthException
 from exceptions.conflict_exception import ConflictException
 from exceptions.resource_not_found_exception import ResourceNotFoundException
 from models.user import User
@@ -16,6 +17,11 @@ class ExceptionHandler:
         elif isinstance(exc, ConflictException):
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT,
+                content={"message": exc.detail}
+            )
+        elif isinstance(exc, NoAuthException):
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"message": exc.detail}
             )
         else:

@@ -7,7 +7,6 @@ class User(StructuredNode):
     country = StringProperty(default = '')
     phone = StringProperty()
     description = StringProperty(default = '')
-    account_type = StringProperty ()
     verified = BooleanProperty(default = False)
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')

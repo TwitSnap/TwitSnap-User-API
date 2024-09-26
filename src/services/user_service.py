@@ -1,3 +1,4 @@
+from DTOs.user.edit_user import EditUser
 from models.user import User
 from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
@@ -33,6 +34,18 @@ class UserService:
     
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None
+    
+    async def edit_user_by_id(self, user_data: EditUser, id :str):
+        user = await self.get_user_by_id(id)
+        if user_data.username is not None:
+            user.username = user_data.username
+        if user_data.phone is not None:
+            user.phone = user_data.phone
+        if user_data.country is not None:
+            user.country = user_data.country
+        if user_data.description is not None:
+            user.description = user_data.description
+        return self.user_repository.update_user(user)
            
     async def get_all_users(self):
         return self.user_repository.get_all_users()
