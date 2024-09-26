@@ -18,11 +18,12 @@ class RegisterService:
         user = await self.service.create_user(register_data)
         auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
         async with httpx.AsyncClient() as client:
-            response = await client.post(f"https://twitsnap-auth-api.onrender.com/v1/register",
+            response = await client.post(f"https://twitsnap-auth-api.onrender.com/v1/auth/register",
                                             json = auth_user_register.model_dump())
             if response.status_code != status.HTTP_201_CREATED :
                 raise(Exception("Error register user in auth service"))
-            return user    
+            
+        return user    
         
     
     async def register_with_google(self, token : GoogleRegister):
