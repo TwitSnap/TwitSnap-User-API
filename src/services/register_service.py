@@ -1,9 +1,9 @@
 from DTOs.register.google_register import GoogleRegister
+from exceptions.user_registration_exception import UserRegistrationException
 from services.user_service import user_service
 from DTOs.register.user_register import UserRegister
 from DTOs.auth.auth_user_register import AuthUserRegister
 from fastapi import Request, requests, status
-from config.settings import oauth
 from exceptions.conflict_exception import ConflictException
 import httpx
 class RegisterService:
@@ -21,8 +21,8 @@ class RegisterService:
             response = await client.post(f"https://twitsnap-auth-api.onrender.com/v1/auth/register",
                                             json = auth_user_register.model_dump())
             if response.status_code != status.HTTP_201_CREATED :
-                raise(Exception("Error register user in auth service"))
-            
+                user.delete()
+                raise(UserRegistrationException("Error register user in auth service"))
         return user    
         
     
@@ -36,6 +36,7 @@ class RegisterService:
 
         if not self.service.exists_user_by_email (email):
             return await self.service.create_user_with_federated_identity(id, email, name)
+        
         raise ConflictException(f"Google user with email {email} is already registered")
 
 async def verify_google_token(token):

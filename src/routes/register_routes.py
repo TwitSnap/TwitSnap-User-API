@@ -3,8 +3,6 @@ from DTOs.register.google_register import GoogleRegister
 from controllers.register_controller import register_controller
 from DTOs.register.user_register import UserRegister
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-
 
 register_router = APIRouter()
 

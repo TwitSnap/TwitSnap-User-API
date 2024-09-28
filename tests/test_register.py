@@ -16,8 +16,7 @@ def clear_db():
     db.cypher_query("MATCH (n) DETACH DELETE n")
 
 def test_register_user():
-    data = {"register_type": "email",
-            "username": "testuser",
+    data = {"username": "testuser",
             "email": "testuser@example.com",
             "password": "stringst",
             "phone": "string",
@@ -34,8 +33,7 @@ def test_register_user():
 
 def test_register_user_with_existing_email():
 
-    data = {"register_type": "email",
-            "username": "testuser",
+    data = {"username": "testuser",
             "email": "testuser@example.com",
             "password": "stringst",
             "phone": "string",

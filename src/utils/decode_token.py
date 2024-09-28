@@ -4,7 +4,7 @@ from fastapi import Depends
 from exceptions.exception_handler import NoAuthException
 from config.settings import SECRET_KEY
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://twitsnap-auth-api.onrender.com/v1/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://twitsnap-auth-api.onrender.com/v1/auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
