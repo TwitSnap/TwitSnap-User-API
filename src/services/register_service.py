@@ -15,15 +15,16 @@ class RegisterService:
 
         if await self.service.exists_user_by_email(register_data.email):
             raise ConflictException(f"The email address {register_data.email} is already registered.")
-        
-        user = await self.service.create_user(register_data)
-        auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(AUTH_API_URI + AUTH_API_REGISTER_PATH,
-                                            json = auth_user_register.model_dump())
-            if response.status_code != status.HTTP_201_CREATED :
-                user.delete()
-                raise(UserRegistrationException("Error register user in auth service"))
+        try:
+            user = await self.service.create_user(register_data)
+            auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(AUTH_API_URI + AUTH_API_REGISTER_PATH, json = auth_user_register.model_dump())
+                if response.status_code != status.HTTP_201_CREATED :
+                    raise(UserRegistrationException("Error register user in auth service"))
+        except Exception as e:
+            user.delete()
+            raise UserRegistrationException(str(e))
         return user    
         
     
