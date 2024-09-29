@@ -27,5 +27,10 @@ class UserRepository:
     
     def update_user(self, user):
         return user.save()
+    
+    def delete_all_users(self):
+        users = User.nodes.all()
+        for user in users:
+            user.delete()
 
 user_repository = UserRepository()

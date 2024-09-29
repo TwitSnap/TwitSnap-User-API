@@ -1,7 +1,6 @@
 from fastapi import APIRouter, status, Depends
 from controllers.user_controller import user_controller
-from utils.decode_token import get_current_user, oauth2_scheme
-from pydantic import BaseModel
+from utils.decode_token import get_current_user
 from DTOs.user.edit_user import EditUser
 
 user_router = APIRouter()
@@ -22,6 +21,10 @@ async def edit_my_user (new_user_data: EditUser ,user_id: str = Depends(get_curr
 async def get_user_by_id ( id : str):
     return await user_controller.get_user_by_id(id)
 
-# @user_router.get("/", status_code= status.HTTP_200_OK)
-# async def get_all_users ():
-#     return await user_controller.get_all_users()
+@user_router.get("/", status_code= status.HTTP_200_OK)
+async def get_all_users ():
+    return await user_controller.get_all_users()
+
+@user_router.delete("/", status_code= status.HTTP_204_NO_CONTENT)
+async def delete_all_users ():
+    return await user_controller.delete_all_users()

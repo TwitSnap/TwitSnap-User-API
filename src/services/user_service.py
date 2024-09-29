@@ -3,7 +3,7 @@ from models.user import User
 from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
 from exceptions.resource_not_found_exception import ResourceNotFoundException
-from exceptions.conflict_exception import ConflictException 
+
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
@@ -49,5 +49,8 @@ class UserService:
            
     async def get_all_users(self):
         return self.user_repository.get_all_users()
+    
+    async def delete_all_users(self):
+        return self.user_repository.delete_all_users()
     
 user_service = UserService(user_repository)

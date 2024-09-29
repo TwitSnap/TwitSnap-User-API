@@ -1,9 +1,10 @@
 from DTOs.register.google_register import GoogleRegister
+from config.settings import *
 from exceptions.user_registration_exception import UserRegistrationException
 from services.user_service import user_service
 from DTOs.register.user_register import UserRegister
 from DTOs.auth.auth_user_register import AuthUserRegister
-from fastapi import Request, requests, status
+from fastapi import requests, status
 from exceptions.conflict_exception import ConflictException
 import httpx
 class RegisterService:
@@ -18,7 +19,7 @@ class RegisterService:
         user = await self.service.create_user(register_data)
         auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
         async with httpx.AsyncClient() as client:
-            response = await client.post(f"https://twitsnap-auth-api.onrender.com/v1/auth/register",
+            response = await client.post(AUTH_API_URI + AUTH_API_REGISTER_PATH,
                                             json = auth_user_register.model_dump())
             if response.status_code != status.HTTP_201_CREATED :
                 user.delete()
