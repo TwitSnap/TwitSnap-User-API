@@ -6,11 +6,11 @@ from fastapi.testclient import TestClient
 from neomodel import config, db
 from main import create_app
 from models.user import User 
-from exceptions.conflict_exception import ConflictException
 
 app = create_app()
 client = TestClient(app)
-config.DATABASE_URL ='bolt://neo4j:testpassword@localhost:7687'
+config.DATABASE_URL = DB_TEST_URL = 'bolt://neo4j:testpassword@localhost:7687'
+
 @pytest.fixture(autouse=True)
 def clear_db():
     db.cypher_query("MATCH (n) DETACH DELETE n")
@@ -46,3 +46,9 @@ def test_register_user_with_existing_email():
     
     response = client.post("/api/v1/register", json=data)
     assert response.status_code == 409
+
+def test_register_with_invalid_email():
+    data = {"username": "testuser",
+            "email": ""}
+    response = client.post("/api/v1/register", json=data)
+    assert response.status_code == 422
