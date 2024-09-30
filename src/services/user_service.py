@@ -50,7 +50,7 @@ class UserService:
            
     async def get_all_users(self):
         users = self.user_repository.get_all_users()
-        return [UserProfile(username = user.username, phone= user.phone, country=user.country, description=user.description)for user in users]
+        return [UserProfile(uid = user.uid, username = user.username )for user in users]
     
     async def delete_all_users(self):
         return self.user_repository.delete_all_users()
