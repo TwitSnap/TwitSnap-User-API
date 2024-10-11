@@ -1,20 +1,20 @@
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt, JWTError
 from fastapi import Depends
-from exceptions.exception_handler import NoAuthException
+from exceptions.exception_handler import ExceptionHandler, NoAuthException
 from config.settings import *
 
 bearer_scheme = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
     try:
         token = credentials.credentials
         payload = jwt.decode(token, SECRET_KEY)
         user_id: str = payload.get("userId") 
         logger.debug(f"User ID from token: {user_id}")
         if user_id is None:
-            raise NoAuthException(f"Could not validate credentials")
-    except JWTError as e:
+            raise NoAuthException(f"Could not validate user_id : {user_id} from token: {token}")
+    except Exception as e:
         logger.warning(f"error decoding token: {token} - {e}")
-        raise NoAuthException("Could not validate credentials")
+        return await ExceptionHandler.handle_exception(e)
     return user_id
