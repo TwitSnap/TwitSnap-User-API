@@ -51,5 +51,10 @@ class UserController:
             return await self.user_service.delete_all_users()
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-        
+    
+    async def get_users_by_username(self, username: str,offset: int , limit: int ):
+        try:
+            return await self.user_service.get_users_by_username(username,offset,limit)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
 user_controller = UserController(user_service)

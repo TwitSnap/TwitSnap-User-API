@@ -38,5 +38,18 @@ class UserRepository:
         users = User.nodes.all()
         for user in users:
             user.delete()
-
+    @db.transaction
+    def get_users_by_username(self, username: str, offset: int, limit: int):
+        query = "MATCH (u:User)"
+        if username:
+            query += " WHERE u.username CONTAINS $username"
+        query += " RETURN u SKIP $offset LIMIT $limit"
+        parameters = {
+            "username": username,
+            "offset": offset,
+            "limit": limit
+        }
+        results, _ = db.cypher_query(query, parameters)
+        return [User.inflate(record[0]) for record in results]
+     
 user_repository = UserRepository()
