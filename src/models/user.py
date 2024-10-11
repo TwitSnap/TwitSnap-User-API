@@ -8,5 +8,6 @@ class User(StructuredNode):
     phone = StringProperty()
     description = StringProperty(default = '')
     verified = BooleanProperty(default = False)
+    photo = StringProperty(default = '')
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')

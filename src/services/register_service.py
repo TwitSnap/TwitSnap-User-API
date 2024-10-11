@@ -26,7 +26,7 @@ class RegisterService:
                 response = await client.post(url, json = auth_user_register.model_dump())
                 logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
                 if response.status_code != status.HTTP_201_CREATED :
-                    raise(UserRegistrationException("Error register user in auth service"))
+                    raise(UserRegistrationException(f"[AuthService] - Error attempt to register user: {response.text}"))
                 
         except Exception as e:
             user.delete()
@@ -55,7 +55,7 @@ class RegisterService:
 async def verify_google_token(token):
     try:
         response = await requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
-        if response.status_code == 200:
+        if response.status_code == status.HTTP_200_OK:
             return response.json()
         else:
             return None

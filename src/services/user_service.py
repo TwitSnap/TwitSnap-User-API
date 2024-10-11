@@ -1,5 +1,7 @@
+from fastapi import UploadFile
+from firebase_admin import storage
 from DTOs.user.edit_user import EditUser
-from DTOs.user_profile import UserProfile
+from DTOs.user.user_profile import UserProfile
 from models.user import User
 from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
@@ -37,7 +39,7 @@ class UserService:
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None
     
-    async def edit_user_by_id(self, user_data: EditUser, id :str):
+    async def edit_user_by_id(self, user_data: EditUser, photo: UploadFile , id :str):
         logger.debug(f"Attempting to change user data with id: {id}. New values: {user_data}")
         user = await self.get_user_by_id(id)
         if user_data.username is not None:
@@ -48,8 +50,16 @@ class UserService:
             user.country = user_data.country
         if user_data.description is not None:
             user.description = user_data.description
+        if photo is not None:
+            bucket = storage.bucket()
+            blob = bucket.blob(photo.filename)
+            blob.upload_from_string( await photo.read(), content_type = photo.content_type)
+            blob.make_public()
+            url = blob.public_url
+            logger.debug(f"photo uploaded to {url}")
+            user.photo = url
         return self.user_repository.update_user(user)
-           
+        
     async def get_all_users(self):
         users = self.user_repository.get_all_users()
         return [UserProfile(uid = user.uid, username = user.username )for user in users]

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter,status, Depends
+from DTOs.user.update_user_form import UpdateUserForm
 from controllers.user_controller import user_controller
 from utils.decode_token import get_current_user
-from DTOs.user.edit_user import EditUser
 
 user_router = APIRouter()
 
@@ -14,8 +14,8 @@ async def get_my_user (user_id: str = Depends(get_current_user)):
     return await user_controller.get_user_by_id(user_id)
 
 @user_router.patch("/me", status_code= status.HTTP_200_OK)
-async def edit_my_user (new_user_data: EditUser ,user_id: str = Depends(get_current_user)):
-    return await user_controller.edit_user_by_id(new_user_data ,user_id)
+async def edit_my_user (user_update_form: UpdateUserForm = Depends(UpdateUserForm), user_id: str = Depends(get_current_user),):
+    return await user_controller.edit_user_by_id(user_update_form, user_id)
 
 @user_router.get("/{id}",status_code = status.HTTP_200_OK)
 async def get_user_by_id ( id : str):

@@ -1,6 +1,7 @@
 from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from exceptions.no_auth_exception import NoAuthException
 from exceptions.conflict_exception import ConflictException
 from exceptions.resource_not_found_exception import ResourceNotFoundException
@@ -9,7 +10,7 @@ from config.settings import logger
 
 class ExceptionHandler:
     @staticmethod
-    async def handle_exception(exc: Exception, request: Request = None):
+    async def handle_exception(exc: Exception, request: Request):
 
         if isinstance(exc, ResourceNotFoundException):
             return JSONResponse(
@@ -28,9 +29,14 @@ class ExceptionHandler:
             )
         elif isinstance(exc, RequestValidationError):
             logger.debug(f"Validation error at {request.url}: {exc.errors()}")
-            logger.debug(f"Received data: {exc.body}")
             return JSONResponse(
-                status_code=422,
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                content={"detail": exc.errors()},
+            )
+        elif isinstance(exc, ValidationError):
+            logger.debug(f"Validation error: {exc.errors()}")
+            return JSONResponse(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content={"detail": exc.errors()},
             )
         else:

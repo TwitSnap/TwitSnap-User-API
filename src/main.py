@@ -1,6 +1,6 @@
 from fastapi import FastAPI,Request
 from fastapi.exceptions import RequestValidationError
-from config.settings import connect_to_database
+from config.settings import *
 from exceptions.exception_handler import ExceptionHandler
 from routes.routes import router
 from starlette.middleware.sessions import SessionMiddleware
@@ -33,7 +33,8 @@ def configure_routes(app: FastAPI):
     app.include_router(router)
 
 if __name__ == "__main__":
-    connect_to_database()
+    init_database()
+    init_firebase()
     app = create_app()
     uvicorn.run(app, host = HOST, port = PORT, log_level= LOG_LEVEL)
 

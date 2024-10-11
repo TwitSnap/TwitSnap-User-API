@@ -3,6 +3,8 @@ from neomodel import config, db
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 from utils.logger import Logger
+import json
+from firebase_admin import credentials, initialize_app
 
 load_dotenv()
 HOST = os.getenv("HOST")
@@ -18,17 +20,32 @@ AUTH_API_LOGIN_PATH = os.getenv("AUTH_API_LOGIN_PATH")
 DB_TEST_URL = 'bolt://neo4j:testpassword@localhost:7687'
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE  = os.getenv("LOG_FILE", "user_ms.log")
+FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
+FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
 
 logger = Logger(LOG_LEVEL, LOG_FILE)
 
-def connect_to_database():
+def init_database():
     try:
         config.DATABASE_URL = f"{DB_PROTOCOL}://{DB_USERNAME}:{DB_PASSWORD}@{DB_URI}"
         db.set_connection(config.DATABASE_URL)
         config.connection_timeout = 20
         logger.info(f"Connecting to database at {config.DATABASE_URL}")
-        db.cypher_query("MATCH (n) DETACH DELETE n")
+        # db.cypher_query("MATCH (n) DETACH DELETE n")
         logger.info("Successfully connected to the database.")
     except Exception as e:
         logger.error(f"Database connection error: {e}")
-        
+
+def init_firebase():
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__)) 
+        logger.info(f"Initializing Firebase with credentials from {current_dir}")
+        firebase_credentials_path = os.path.join(current_dir, '..', '..', 'twitsnap-82671-firebase-adminsdk-q3c3c-7613007f9d.json')
+        cred = credentials.Certificate(firebase_credentials_path)
+        initialize_app(cred, {
+            'storageBucket': FIREBASE_STORAGE_BUCKET
+        })
+        logger.info("Firebase initialized successfully.")
+    except Exception as e:
+        logger.error(f"Firebase initialization error: {e}")
+
