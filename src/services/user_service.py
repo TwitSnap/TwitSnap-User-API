@@ -52,7 +52,7 @@ class UserService:
             user.description = user_data.description
         if photo is not None:
             bucket = storage.bucket()
-            blob = bucket.blob(photo.filename)
+            blob = bucket.blob(f"{id}_{photo.filename}")
             blob.upload_from_string( await photo.read(), content_type = photo.content_type)
             blob.make_public()
             url = blob.public_url
