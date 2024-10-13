@@ -62,14 +62,14 @@ class UserService:
         
     async def get_all_users(self):
         users = self.user_repository.get_all_users()
-        return [UserProfile(uid = user.uid, username = user.username )for user in users]
+        return [UserProfile(uid = user.uid, username = user.username, photo = user.photo )for user in users]
     
     async def delete_all_users(self):
         return self.user_repository.delete_all_users()
     
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)
-        res = [UserProfile(uid = user.uid, username = user.username )for user in users]
+        res = [UserProfile(uid = user.uid, username = user.username , photo= user.photo)for user in users]
         logger.debug(f"Found {len(users)} users with username {username}, list: {res}")
         return res
 user_service = UserService(user_repository)
