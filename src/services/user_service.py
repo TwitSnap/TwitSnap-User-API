@@ -56,16 +56,13 @@ class UserService:
             blob.upload_from_string( await photo.read(), content_type = photo.content_type)
             blob.make_public()
             url = blob.public_url
-            logger.debug(f"photo uploaded to {url}")
+            logger.debug(f"photo uploaded to firebase with link: {url}")
             user.photo = url
         return self.user_repository.update_user(user)
         
     async def get_all_users(self):
         users = self.user_repository.get_all_users()
         return [UserProfile(uid = user.uid, username = user.username, photo = user.photo )for user in users]
-    
-    async def delete_all_users(self):
-        return self.user_repository.delete_all_users()
     
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)

@@ -24,25 +24,16 @@ class UserRepository:
             return user
         except User.DoesNotExist:
             return None
-
-    @db.transaction
-    def get_all_users (self):
-        return User.nodes.all()
     
     @db.transaction
     def update_user(self, user):
         return user.save()
     
     @db.transaction
-    def delete_all_users(self):
-        users = User.nodes.all()
-        for user in users:
-            user.delete()
-    @db.transaction
     def get_users_by_username(self, username: str, offset: int, limit: int):
-        query = "MATCH (u:User)"
-        if username:
-            query += " WHERE u.username CONTAINS $username"
+        if not username:
+            return []
+        query = "MATCH (u:User) WHERE u.username STARTS WITH $username"
         query += " RETURN u SKIP $offset LIMIT $limit"
         parameters = {
             "username": username,

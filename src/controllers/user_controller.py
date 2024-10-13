@@ -29,13 +29,7 @@ class UserController:
             return await self.user_service.get_user_by_id(id)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-
-    async def get_all_users(self):
-        try:
-            return await self.user_service.get_all_users()
-        except Exception as e:
-            return await ExceptionHandler.handle_exception(e)
-        
+                
     async def edit_user_by_id(self, update_form: UpdateUserForm, id: str):
         try:
             new_user_data = EditUser(username=update_form.username, phone=update_form.phone, country=update_form.country, description=update_form.description)
@@ -46,15 +40,10 @@ class UserController:
         except Exception as e:
             return await ExceptionHandler.handle_exception(e, request = Request)
     
-    async def delete_all_users(self):
-        try:
-            return await self.user_service.delete_all_users()
-        except Exception as e:
-            return await ExceptionHandler.handle_exception(e)
-    
     async def get_users_by_username(self, username: str,offset: int , limit: int ):
         try:
             return await self.user_service.get_users_by_username(username,offset,limit)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
+    
 user_controller = UserController(user_service)

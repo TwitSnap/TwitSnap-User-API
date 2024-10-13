@@ -2,7 +2,7 @@ from neomodel import StructuredNode, StringProperty, UniqueIdProperty, Relations
 
 class User(StructuredNode):
     uid = UniqueIdProperty()
-    username = StringProperty() 
+    username = StringProperty(index = True) 
     email = StringProperty(unique_index = True)
     country = StringProperty(default = '')
     phone = StringProperty()
