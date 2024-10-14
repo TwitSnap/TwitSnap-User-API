@@ -1,5 +1,7 @@
 from neomodel import StructuredNode, StringProperty, UniqueIdProperty, RelationshipTo, BooleanProperty
 
+from config.settings import DEFAULT_PROFILE_PHOTO
+
 class User(StructuredNode):
     uid = UniqueIdProperty()
     username = StringProperty(index = True) 
@@ -8,6 +10,6 @@ class User(StructuredNode):
     phone = StringProperty()
     description = StringProperty(default = '')
     verified = BooleanProperty(default = False)
-    photo = StringProperty(default = '')
+    photo = StringProperty(default = DEFAULT_PROFILE_PHOTO)
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')
