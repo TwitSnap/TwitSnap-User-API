@@ -6,7 +6,8 @@ from DTOs.register.user_register import UserRegister
 from DTOs.auth.auth_user_register import AuthUserRegister
 from fastapi import requests, status
 from exceptions.conflict_exception import ConflictException
-import httpx
+
+from utils.requester import Requester
 class RegisterService:
     def __init__(self):
         self.service = user_service
@@ -20,14 +21,13 @@ class RegisterService:
             logger.debug(f"Attempting to register user with data: {register_data}")
             user = await self.service.create_user(register_data)
             auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
-            async with httpx.AsyncClient() as client:
-                url = AUTH_API_URI + AUTH_API_REGISTER_PATH
-                logger.debug(f"[AuthService] - Attempting to register at {url} with data: {auth_user_register.model_dump()}")
-                response = await client.post(url, json = auth_user_register.model_dump())
-                logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
-                if response.status_code != status.HTTP_201_CREATED :
-                    raise(UserRegistrationException(f"[AuthService] - Error attempt to register user: {response.text}"))
-                
+
+            url = AUTH_API_URI + AUTH_API_REGISTER_PATH
+            logger.debug(f"[AuthService] - Attempting to register at {url} with data: {auth_user_register.model_dump()}")
+            response = await Requester.post(url, json_body = auth_user_register.model_dump())
+            logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
+            
+            await self.service.generate_register_pin(user.uid)
         except Exception as e:
             user.delete()
             logger.error(f"Error attempt to register user: {str(e)}")

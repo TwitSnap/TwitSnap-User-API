@@ -45,5 +45,17 @@ class UserController:
             return await self.user_service.get_users_by_username(username,offset,limit)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-    
+        
+    async def refresh_register_pin(self, user_id: str):
+        try:
+            return await self.user_service.generate(user_id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+        
+    async def confirm_user(self, user_id: str, pin: str):
+        try:
+            return await self.user_service.confirm_user(user_id, pin)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+        
 user_controller = UserController(user_service)

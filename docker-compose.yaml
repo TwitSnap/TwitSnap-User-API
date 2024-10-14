@@ -8,8 +8,8 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - NEO4J_PROTOCOL = bolt
-      - NEO4J_HOST_PORT = localhost:7474
+      - NEO4J_PROTOCOL=bolt
+      - NEO4J_HOST_PORT=localhost:7474
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=12345678
     depends_on:

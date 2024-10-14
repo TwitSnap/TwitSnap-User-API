@@ -18,7 +18,7 @@ class UserRepository:
             return None
         
     @db.transaction    
-    def find_user_by_id (self, id ):
+    def find_user_by_id (self, id )-> User:
         try:
             user = User.nodes.get( uid = id)
             return user

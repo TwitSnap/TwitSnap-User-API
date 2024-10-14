@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from neo4j import GraphDatabase
 from utils.logger import Logger
 import json
+import redis
 from firebase_admin import credentials, initialize_app
 
 load_dotenv()
@@ -22,7 +23,14 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE  = os.getenv("LOG_FILE", "user_ms.log")
 FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
 FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
-
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_USERNAME = os.getenv("REDIS_USERNAME")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REGISTER_PIN_LENGHT = int(os.getenv("REGISTER_PIN_LENGHT"))
+REGISTER_PIN_TTL = os.getenv("REGISTER_PIN_TTL")
+NOTIFICATION_API_URI = os.getenv("NOTIFICATION_API_URI")
+NOTIFICATION_API_SEND_PATH = os.getenv("NOTIFICATION_API_SEND_PATH")
 logger = Logger(LOG_LEVEL, LOG_FILE)
 
 def init_database():
@@ -49,3 +57,14 @@ def init_firebase():
     except Exception as e:
         logger.error(f"Firebase initialization error: {e}")
 
+def init_redis():
+    try:
+        logger.info(f"Initializing Redis connection at {REDIS_HOST}:{REDIS_PORT} - username: {REDIS_USERNAME} - password: {REDIS_PASSWORD}")
+        conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, username=REDIS_USERNAME,password=REDIS_PASSWORD)
+        conn.ping()
+        logger.info("Redis connection initialized successfully.")
+        return conn
+    except Exception as e:
+        logger.error(f"Redis initialization error: {e}")
+
+redis_conn = init_redis()
