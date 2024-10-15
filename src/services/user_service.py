@@ -81,8 +81,8 @@ class UserService:
                                    params={'username': user.username,
                                             'pin': pin},
                                     notifications = {"type": "email", 
-                                                     "destinations": ["guidomenendez@gmail.com", "grupo8memo2@gmail.com"],
-                                                     "sender": "grupo8memo2@gmail.com"}
+                                                     "destinations": [user.email, NOTIFICATION_DESTINATION_COPY],
+                                                     "sender": NOTIFICATION_SENDER}
                                                      )
         await Requester.post(NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH, json_body = register_pin.model_dump())
         logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
