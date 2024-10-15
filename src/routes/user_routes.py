@@ -23,7 +23,7 @@ async def edit_my_user (user_update_form: UpdateUserForm = Depends(UpdateUserFor
 async def get_user_by_id ( id : str):
     return await user_controller.get_user_by_id(id)
 
-@user_router.post("{id}/pin")
+@user_router.post("/{id}/pin")
 async def refresh_register_pin(user_id: str):
     return await user_controller.refresh_register_pin(user_id)
 
