@@ -57,7 +57,7 @@ class UserService:
         if user_data.description is not None:
             user.description = user_data.description
         if photo is not None:
-            url = upload_photo_to_firebase(photo, id)
+            url = await upload_photo_to_firebase(photo, id)
             logger.debug(f"photo uploaded to firebase with link: {url}")
             user.photo = url
         return self.user_repository.update_user(user)
