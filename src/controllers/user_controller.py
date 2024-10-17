@@ -48,7 +48,7 @@ class UserController:
         
     async def refresh_register_pin(self, user_id: str):
         try:
-            return await self.user_service.generate_pin(user_id)
+            return await self.user_service.generate_register_pin(user_id)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
         
