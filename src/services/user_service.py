@@ -76,12 +76,12 @@ class UserService:
             raise ConflictException(detail=f"User with id: {user_id} is already verified")
         
         pin = generate_pin()
-        redis_conn.setex(f"{pin}", REGISTER_PIN_TTL, user.uid)
+        redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
         register_pin = RegisterPin(type='registration',
                                    params={'username': user.username,
                                             'pin': pin},
                                     notifications = {"type": "email", 
-                                                     "destinations": [user.email, NOTIFICATION_DESTINATION_COPY],
+                                                     "destinations": [user.email],
                                                      "sender": NOTIFICATION_SENDER}
                                                      )
         await Requester.post(NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH, json_body = register_pin.model_dump())
@@ -95,13 +95,13 @@ class UserService:
             logger.debug(f"User with id: {user_id} is already verified")
             raise ConflictException(detail=f"User with id: {user_id} is already verified")
         
-        user_id_from_pin = redis_conn.get(pin)
+        pin_from_uid = redis_conn.get(user_id)
 
-        if user_id_from_pin is None:
+        if pin_from_uid is None:
             logger.debug(f"Pin {pin} is invalid or expired")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid or expired")
             
-        if user_id_from_pin.decode() != user_id:
+        if pin_from_uid.decode() != user_id:
             logger.debug(f"Pin {pin} is invalid for user with id: {user_id}")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid")
         
