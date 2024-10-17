@@ -101,7 +101,7 @@ class UserService:
             logger.debug(f"Pin {pin} is invalid or expired")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid or expired")
             
-        if pin_from_uid.decode() != user_id:
+        if pin_from_uid.decode() != pin:
             logger.debug(f"Pin {pin} is invalid for user with id: {user_id}")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid")
         
