@@ -1,16 +1,16 @@
 from typing import Optional, List
 from fastapi import APIRouter, Header, Query, Request,status, Depends
+from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.user.update_user_form import UpdateUserForm
 from DTOs.user.user_profile import UserProfile
 from DTOs.user.user_profile_preview import UserProfilePreview
 from controllers.user_controller import user_controller
 from utils.get_current_user import get_current_user
-from config.settings import logger
 user_router = APIRouter()
 
-@user_router.get("/id", status_code = status.HTTP_200_OK)
-async def get_user_id_by_email(email: str):
-    return await user_controller.get_user_id_by(email)
+@user_router.get("/auth", status_code = status.HTTP_200_OK, response_model = AuthUserResponse)
+async def get_user_auth_status_by_email(email: str):
+    return await user_controller.get_user_by(email)
 
 @user_router.get("/me", status_code= status.HTTP_200_OK, response_model= UserProfile, response_model_exclude_none=True)
 async def get_my_user (request: Request):

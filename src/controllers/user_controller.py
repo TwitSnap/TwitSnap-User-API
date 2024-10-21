@@ -18,9 +18,9 @@ class UserController:
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
     
-    async def get_user_id_by(self, email: str):
+    async def get_user_by(self, email: str):
         try:
-            return await self.user_service.get_user_id_by_email(email)
+            return await self.user_service.get_user_by_email(email)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
     

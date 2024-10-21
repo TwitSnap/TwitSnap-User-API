@@ -1,5 +1,6 @@
 from fastapi import UploadFile
 from firebase_admin import storage
+from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
@@ -23,14 +24,15 @@ class UserService:
         new_user.verified = True
         return self.user_repository.create_user(new_user)
     
-    async def get_user_id_by_email(self, email):
+    async def get_user_by_email(self, email):
         logger.debug(f"Attempting to get user id by email: {email}")
         user = self.user_repository.find_user_by_email(email)
         if user is None:
             logger.debug(f"User not found with email: {email}")
             raise ResourceNotFoundException(detail=f"User not found with email: {email}")
         logger.debug(f"Found user with email: {email} and id: {user.uid}")
-        return user.uid
+        logger.debug(f"user is_banned status: {user.is_banned}")
+        return AuthUserResponse(uid = user.uid, is_banned = user.is_banned)
     
     async def get_user_by_id(self, id, my_uid = None):
         user = await self._get_user_by_id(id)
