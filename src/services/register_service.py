@@ -30,7 +30,7 @@ class RegisterService:
             logger.debug(f"[AuthService] - Attempting to register at {url} with data: {auth_user_register.model_dump()}")
             response = await Requester.post(url, json_body = auth_user_register.model_dump())
             logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
-            # await self._generate_register_pin(user.uid)
+            await self._generate_register_pin(user.uid)
         except Exception as e:
             user.delete()
             logger.error(f"Error attempt to register user: {str(e)}")

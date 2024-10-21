@@ -3,6 +3,7 @@ from firebase_admin import storage
 from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
+from DTOs.user.user_profile_preview import UserProfilePreview
 from exceptions.conflict_exception import ConflictException
 from models.user import User
 from repositories.user_repository import user_repository
@@ -30,15 +31,41 @@ class UserService:
             raise ResourceNotFoundException(detail=f"User not found with email: {email}")
         return user.uid
     
-    async def get_user_by_id(self, id):
+    async def get_user_by_id(self, id, my_uid = None):
+        user = await self._get_user_by_id(id)
+        if my_uid:
+            my_user = await self._get_user_by_id(my_uid)
+        
+        return UserProfile(uid = user.uid, 
+                           username = user.username, 
+                           phone = user.phone,
+                           country = user.country, 
+                           description = user.description, 
+                           photo = user.photo,
+                           amount_of_followers = len(user.followers),
+                           amount_of_following = len(user.following),
+                           is_follwed_by_me = user.followers.is_connecected(my_user) if my_uid else None,
+                           )
+    
+    async def get_my_user(self, user_id):
+        user = await self._get_user_by_id(user_id)
+        return UserProfile(uid = user.uid, 
+                           username = user.username, 
+                           phone = user.phone,
+                           country = user.country, 
+                           description = user.description, 
+                           photo = user.photo,
+                           email = user.email,
+                           amount_of_followers = len(user.followers),
+                           amount_of_following = len(user.following),
+                           )
+
+    async def _get_user_by_id(self, id):
         user = self.user_repository.find_user_by_id(id)
         if user is None:
             logger.debug(f"User not found with id: {id}")
             raise ResourceNotFoundException(detail=f"User not found with id: {id}")
         return user
-    
-    async def get_my_user(self, user_id):
-        return await self.get_user_by_id(user_id)
 
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None
@@ -46,15 +73,13 @@ class UserService:
     async def edit_user_by_id(self, user_data: EditUser, photo: UploadFile , id :str):
         logger.debug(f"Attempting to change user data with id: {id}. New values: {user_data}")
         user = await self.get_user_by_id(id)
-        if user_data.username is not None:
-            user.username = user_data.username
-        if user_data.phone is not None:
-            user.phone = user_data.phone
-        if user_data.country is not None:
-            user.country = user_data.country
-        if user_data.description is not None:
-            user.description = user_data.description
-        if photo is not None:
+
+        for attr, value in user_data.items():
+            if value is not None:
+                setattr(user, attr, value)
+
+        if photo:
+            logger.debug(f"Attempting to upload photo: {photo} for user with id: {id}")
             url = await upload_photo_to_firebase(photo, id)
             logger.debug(f"photo uploaded to firebase with link: {url}")
             user.photo = url
@@ -62,7 +87,7 @@ class UserService:
         
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)
-        res = [UserProfile(uid = user.uid, username = user.username , photo= user.photo)for user in users]
+        res = [UserProfilePreview(uid = user.uid, username = user.username , photo= user.photo )for user in users]
         logger.debug(f"Found {len(users)} users with username {username}, list: {res}")
         return res
     

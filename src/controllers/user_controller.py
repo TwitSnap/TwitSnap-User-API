@@ -23,13 +23,15 @@ class UserController:
             return await self.user_service.get_user_id_by_email(email)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-        
-    async def get_user_by_id(self, id: str):
+    
+    async def get_user_by_id(self, id: str, my_uid: str = None):
         try:
-            return await self.user_service.get_user_by_id(id)
+            if my_uid and (id == 'me' or id == my_uid):
+                    return await self.user_service.get_my_user(my_uid)
+            return await self.user_service.get_user_by_id(id, my_uid)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
-                
+
     async def edit_user_by_id(self, update_form: UpdateUserForm, id: str):
         try:
             new_user_data = EditUser(username=update_form.username, phone=update_form.phone, country=update_form.country, description=update_form.description)

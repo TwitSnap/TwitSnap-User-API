@@ -2,6 +2,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Query,status, Depends
 from DTOs.user.update_user_form import UpdateUserForm
 from DTOs.user.user_profile import UserProfile
+from DTOs.user.user_profile_preview import UserProfilePreview
 from controllers.user_controller import user_controller
 from utils.decode_token import get_current_user
 
@@ -11,7 +12,7 @@ user_router = APIRouter()
 async def get_user_id_by_email(email: str):
     return await user_controller.get_user_id_by(email)
 
-@user_router.get("/me", status_code= status.HTTP_200_OK)
+@user_router.get("/me", status_code= status.HTTP_200_OK, response_model= UserProfile, response_model_exclude_none=True)
 async def get_my_user (user_id: str = Depends(get_current_user)):
     return await user_controller.get_user_by_id(user_id)
 
@@ -19,7 +20,7 @@ async def get_my_user (user_id: str = Depends(get_current_user)):
 async def edit_my_user (user_update_form: UpdateUserForm = Depends(UpdateUserForm), user_id: str = Depends(get_current_user),):
     return await user_controller.edit_user_by_id(user_update_form, user_id)
 
-@user_router.get("/{id}",status_code = status.HTTP_200_OK)
+@user_router.get("/{id}",status_code = status.HTTP_200_OK, response_model= UserProfile, response_model_exclude_none=True)
 async def get_user_by_id ( id : str):
     return await user_controller.get_user_by_id(id)
 
@@ -31,6 +32,6 @@ async def refresh_register_pin(id: str):
 async def verify_register_pin(id: str, pin: str):
     return await user_controller.confirm_user(id, pin)
 
-@user_router.get("/", response_model=List[UserProfile])
+@user_router.get("/", response_model=List[UserProfilePreview],response_model_exclude_none= True, status_code=status.HTTP_200_OK)
 async def get_users(username: Optional[str] = Query(None), offset: int = Query(0, ge=0),limit: int = Query(10, gt=0)):
     return await user_controller.get_users_by_username(username, offset, limit)
