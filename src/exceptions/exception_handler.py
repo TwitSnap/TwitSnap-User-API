@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from jose import ExpiredSignatureError
 from pydantic import ValidationError
+from exceptions.bad_request_exception import BadRequestException
 from exceptions.no_auth_exception import NoAuthException
 from exceptions.conflict_exception import ConflictException
 from exceptions.resource_not_found_exception import ResourceNotFoundException
@@ -46,6 +47,12 @@ class ExceptionHandler:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token expired"
+            )
+        elif isinstance(exc, BadRequestException):
+            logger.debug(f"Bad request: {exc}")
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"message": exc.detail}
             )
         else:
             logger.error(f"Internal server error: {exc}")

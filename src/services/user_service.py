@@ -29,6 +29,7 @@ class UserService:
         if user is None:
             logger.debug(f"User not found with email: {email}")
             raise ResourceNotFoundException(detail=f"User not found with email: {email}")
+        logger.debug(f"Found user with email: {email} and id: {user.uid}")
         return user.uid
     
     async def get_user_by_id(self, id, my_uid = None):
@@ -72,9 +73,9 @@ class UserService:
     
     async def edit_user_by_id(self, user_data: EditUser, photo: UploadFile , id :str):
         logger.debug(f"Attempting to change user data with id: {id}. New values: {user_data}")
-        user = await self.get_user_by_id(id)
+        user = await self._get_user_by_id(id)
 
-        for attr, value in user_data.items():
+        for attr, value in user_data.model_dump().items():
             if value is not None:
                 setattr(user, attr, value)
 
@@ -83,7 +84,17 @@ class UserService:
             url = await upload_photo_to_firebase(photo, id)
             logger.debug(f"photo uploaded to firebase with link: {url}")
             user.photo = url
-        return self.user_repository.update_user(user)
+        eddited_user = self.user_repository.update_user(user)
+        return UserProfile(uid = eddited_user.uid,
+                            username = eddited_user.username,
+                            phone = eddited_user.phone,
+                            country = eddited_user.country,
+                            email= eddited_user.email,
+                            description = eddited_user.description,
+                            photo = eddited_user.photo,
+                            amount_of_followers = len(eddited_user.followers),
+                            amount_of_following = len(eddited_user.following)
+                            )
         
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)

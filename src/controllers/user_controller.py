@@ -26,8 +26,10 @@ class UserController:
     
     async def get_user_by_id(self, id: str, my_uid: str = None):
         try:
-            if my_uid and (id == 'me' or id == my_uid):
-                    return await self.user_service.get_my_user(my_uid)
+            if id == 'me' or id == my_uid:
+                logger.debug(f"Getting my user with id: {my_uid}")
+                return await self.user_service.get_my_user(my_uid)
+            logger.debug(f"Getting user with id: {id}")
             return await self.user_service.get_user_by_id(id, my_uid)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
