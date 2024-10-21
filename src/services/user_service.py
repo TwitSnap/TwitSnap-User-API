@@ -1,6 +1,7 @@
 from fastapi import UploadFile
 from firebase_admin import storage
 from DTOs.auth.aurh_user_response import AuthUserResponse
+from DTOs.backoffice.ban_user_request import BanUserRequest
 from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
@@ -34,6 +35,7 @@ class UserService:
         logger.debug(f"user is_banned status: {user.is_banned}")
         return AuthUserResponse(uid = user.uid, is_banned = user.is_banned)
     
+
     async def get_user_by_id(self, id, my_uid = None):
         user = await self._get_user_by_id(id)
         if my_uid:
@@ -126,25 +128,12 @@ class UserService:
         self.user_repository.update_user(user)
 
         return user
-    async def ban_user(self, user_id):
-        user = await self._get_user_by_id(user_id)
-        if user.is_banned:
-            logger.debug(f"User with id: {user_id} is already banned")
-            raise ConflictException(detail=f"User with id: {user_id} is already banned")
-        
-        user.is_banned = True
+    async def ban_user(self, user_id, req: BanUserRequest):
+        user = await self._get_user_by_id(user_id)    
+        user.is_banned = req.is_banned
         self.user_repository.update_user(user)
-        return user
+        return 
     
-    async def unban_user(self, user_id):
-        user = await self._get_user_by_id(user_id)
-        if not user.is_banned:
-            logger.debug(f"User with id: {user_id} is not banned")
-            raise ConflictException(detail=f"User with id: {user_id} is not banned")
-        user.is_banned = False
-        self.user_repository.update_user(user)
-        return user
-
 async def upload_photo_to_firebase(photo: UploadFile, id: str):
     bucket = storage.bucket()
     blob = bucket.blob(f"{id}_{photo.filename}")
