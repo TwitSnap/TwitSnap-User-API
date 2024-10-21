@@ -57,6 +57,7 @@ class UserService:
                            description = user.description, 
                            photo = user.photo,
                            email = user.email,
+                           verified = user.verified,
                            amount_of_followers = len(user.followers),
                            amount_of_following = len(user.following),
                            )
@@ -123,7 +124,25 @@ class UserService:
         self.user_repository.update_user(user)
 
         return user
+    async def ban_user(self, user_id):
+        user = await self._get_user_by_id(user_id)
+        if user.is_banned:
+            logger.debug(f"User with id: {user_id} is already banned")
+            raise ConflictException(detail=f"User with id: {user_id} is already banned")
+        
+        user.is_banned = True
+        self.user_repository.update_user(user)
+        return user
     
+    async def unban_user(self, user_id):
+        user = await self._get_user_by_id(user_id)
+        if not user.is_banned:
+            logger.debug(f"User with id: {user_id} is not banned")
+            raise ConflictException(detail=f"User with id: {user_id} is not banned")
+        user.is_banned = False
+        self.user_repository.update_user(user)
+        return user
+
 async def upload_photo_to_firebase(photo: UploadFile, id: str):
     bucket = storage.bucket()
     blob = bucket.blob(f"{id}_{photo.filename}")

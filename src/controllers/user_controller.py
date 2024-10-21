@@ -61,5 +61,17 @@ class UserController:
             return await self.user_service.confirm_user(user_id, pin)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
+    
+    async def ban_user(self, user_id: str):
+        try:
+            return await self.user_service.ban_user(user_id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+    
+    async def unban_user(self, user_id: str):
+        try:
+            return await self.user_service.unban_user(user_id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
         
 user_controller = UserController(user_service)

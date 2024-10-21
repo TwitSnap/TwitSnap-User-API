@@ -11,5 +11,6 @@ class User(StructuredNode):
     description = StringProperty(default = '')
     verified = BooleanProperty(default = False)
     photo = StringProperty(default = DEFAULT_PROFILE_PHOTO)
+    is_banned = BooleanProperty(default = False)
     followers = RelationshipTo('User', 'FOLLOWER')
     following = RelationshipTo('User', 'FOLLOWING')
