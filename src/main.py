@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI,Request
 from fastapi.exceptions import RequestValidationError
 from config.settings import *
@@ -8,13 +9,19 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from config.settings import *
 def create_app():
-    app = FastAPI()
+    app = FastAPI(lifespan=lifespan)
     configure_middleware(app)
-    configure_routes(app)  
+    configure_routes(app)
+        
     @app.exception_handler(RequestValidationError)
     async def _(request: Request, exc: Exception):
         return await ExceptionHandler.handle_exception(exc, request)
     return app
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    db.driver.close()
 
 def configure_middleware(app: FastAPI):
     app.add_middleware(

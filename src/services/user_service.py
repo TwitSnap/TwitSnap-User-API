@@ -1,9 +1,5 @@
-import random
-import string
 from fastapi import UploadFile
 from firebase_admin import storage
-from DTOs.notification.register_pin import RegisterPin
-from DTOs.register.generated_pin_response import GeneratedPinResponse
 from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
@@ -13,7 +9,6 @@ from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
 from exceptions.resource_not_found_exception import ResourceNotFoundException
 from config.settings import *
-from utils.requester import Requester
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
@@ -24,6 +19,7 @@ class UserService:
     
     async def create_user_with_federated_identity(self, google_register: GoogleRegister):
         new_user = User(**google_register.model_dump())
+        new_user.verified = True
         return self.user_repository.create_user(new_user)
     
     async def get_user_id_by_email(self, email):
@@ -41,6 +37,9 @@ class UserService:
             raise ResourceNotFoundException(detail=f"User not found with id: {id}")
         return user
     
+    async def get_my_user(self, user_id):
+        return await self.get_user_by_id(user_id)
+
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None
     
@@ -67,26 +66,6 @@ class UserService:
         logger.debug(f"Found {len(users)} users with username {username}, list: {res}")
         return res
     
-    async def generate_register_pin(self, user_id):
-        user = await self.get_user_by_id(user_id)
-    
-        if user.verified:
-            logger.debug(f"User with id: {user_id} is already verified")
-            raise ConflictException(detail=f"User with id: {user_id} is already verified")
-        
-        pin = generate_pin()
-        redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
-        register_pin = RegisterPin(type='registration',
-                                   params={'username': user.username,
-                                            'pin': pin},
-                                    notifications = {"type": "email", 
-                                                     "destinations": [user.email],
-                                                     "sender": NOTIFICATION_SENDER}
-                                                     )
-        await Requester.post(NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH, json_body = register_pin.model_dump())
-        logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
-        return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
-    
     async def confirm_user(self, user_id, pin):
         user = await self.get_user_by_id(user_id)
 
@@ -109,9 +88,6 @@ class UserService:
 
         return user
     
-def generate_pin():
-    return ''.join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
-
 async def upload_photo_to_firebase(photo: UploadFile, id: str):
     bucket = storage.bucket()
     blob = bucket.blob(f"{id}_{photo.filename}")
