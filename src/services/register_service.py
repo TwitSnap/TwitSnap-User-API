@@ -1,3 +1,4 @@
+from fastapi.responses import JSONResponse
 from DTOs.register.google_register import GoogleRegister
 from config.settings import *
 from exceptions.user_registration_exception import UserRegistrationException
@@ -26,7 +27,6 @@ class RegisterService:
             logger.debug(f"[AuthService] - Attempting to register at {url} with data: {auth_user_register.model_dump()}")
             response = await Requester.post(url, json_body = auth_user_register.model_dump())
             logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
-            
             await self.service.generate_register_pin(user.uid)
         except Exception as e:
             user.delete()
@@ -37,29 +37,33 @@ class RegisterService:
     
     async def register_with_google(self, token : GoogleRegister):
         user_info = await verify_google_token(token.token)
-        if user_info is None:
-            logger.error(f"Invalid token: {token.token}")
-            raise Exception("Invalid token")
-        
         id = user_info['sub'] 
         email = user_info['email']     
-        name = user_info['name']      
+        name = user_info['name'] 
+        photo = user_info['picture']
+        google_register = GoogleRegister(uid = id, email = email, username = name, photo = photo)        
 
-        if not self.service.exists_user_by_email (email):
-            logger.debug(f"Attempting to Google-register with data: id: {id}, email: {email}, name: {name}")   
-            return await self.service.create_user_with_federated_identity(id, email, name)
-        
-        logger.debug(f"Google user with email {email} is already registered")
-        raise ConflictException(f"Google user with email {email} is already registered")
+        user = self.service.user_repository.find_user_by_email(email)
+        if user is None:
+            logger.debug(f"Attempting to Google-register with data: id: {id}, email: {email}, name: {name}, photo: {photo}")   
+            user = await self.service.create_user_with_federated_identity(google_register)
+            # return await self.service.generate_register_pin(user.uid)
+            return user
+        logger.debug(f"User already registered with email: {email}, id: {id} , username: {name}")
 
+        return user
+    
 async def verify_google_token(token):
-    try:
-        response = await requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
-        if response.status_code == status.HTTP_200_OK:
-            return response.json()
-        else:
-            return None
-    except Exception:
-        return None
+    # con access token
+    # url = "https://www.googleapis.com/oauth2/v1/userinfo"
+    # headers = {
+    #     "Authorization": f"Bearer {token}"
+    # }
+
+    url = f'https://oauth2.googleapis.com/tokeninfo?id_token={token}'
+
+    response = await Requester.get(url)
+    logger.debug(f"Attemptt to verify google token: {token} - response: {response.text}")
+    return response.json()
     
 register_service = RegisterService()

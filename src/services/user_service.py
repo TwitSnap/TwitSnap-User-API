@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from firebase_admin import storage
 from DTOs.notification.register_pin import RegisterPin
 from DTOs.register.generated_pin_response import GeneratedPinResponse
+from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
 from exceptions.conflict_exception import ConflictException
@@ -21,10 +22,8 @@ class UserService:
         new_user = User(**register_request.model_dump())
         return self.user_repository.create_user(new_user)
     
-    async def create_user_with_federated_identity(self, id, email, username):
-        new_user = User(username = username,
-                        email = email,
-                        uid = id,)
+    async def create_user_with_federated_identity(self, google_register: GoogleRegister):
+        new_user = User(**google_register.model_dump())
         return self.user_repository.create_user(new_user)
     
     async def get_user_id_by_email(self, email):

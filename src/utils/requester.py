@@ -11,4 +11,12 @@ class Requester:
             logger.debug(f"Attempt POST request to {url} - status code {response.status_code}")
             response.raise_for_status()
             return response
+    @staticmethod
+    async def get(url: str, headers: Optional[Dict[str, str]] = None) -> Any:
+        async with httpx.AsyncClient() as client:
+            logger.debug(f"Attempting GET request to {url}")
+            response = await client.get(url, headers=headers)
+            logger.debug(f"Attempt GET request to {url} - status code {response.status_code}")
+            response.raise_for_status()
+            return response
 
