@@ -14,14 +14,14 @@ def create_app():
     configure_routes(app)
         
     @app.exception_handler(RequestValidationError)
-    async def _(request: Request, exc: Exception):
-        return await ExceptionHandler.handle_exception(exc, request)
+    def _(request: Request, exc: Exception):
+        return ExceptionHandler.handle_exception(exc, request)
     return app
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    db.driver.close()
+    db.close_connection()
 
 def configure_middleware(app: FastAPI):
     app.add_middleware(
@@ -31,10 +31,14 @@ def configure_middleware(app: FastAPI):
         allow_methods=['*'],
         allow_headers=['*'],
     )
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key='',
-    )
+    @app.middleware("http")
+    async def log_request_middleware(request: Request, call_next):
+        method = request.method
+        url = request.url
+        header = dict(request.headers)
+        logger.info(f"Request url: {url} | Method: {method} | Header: {header}")
+        response = await call_next(request)
+        return response
 
 def configure_routes(app: FastAPI):
     app.include_router(router)

@@ -12,13 +12,13 @@ class RegisterController:
         try:
             return await self.register_service.register(user_register_data )
         except Exception as e:
-             return await ExceptionHandler.handle_exception(e)
+             return ExceptionHandler.handle_exception(e)
         
     async def register_with_google(self, token : GoogleRegister):
         try:
             return await self.register_service.register_with_google(token)
         except Exception as e:
-             return await ExceptionHandler.handle_exception(e)
+             return ExceptionHandler.handle_exception(e)
 
 register_controller = RegisterController(register_service)
 

@@ -13,7 +13,7 @@ from fastapi import HTTPException
 
 class ExceptionHandler:
     @staticmethod
-    async def handle_exception(exc: Exception, request: Request = None):
+    def handle_exception(exc: Exception, request: Request = None) -> JSONResponse:
 
         if isinstance(exc, ResourceNotFoundException):
             return JSONResponse(
@@ -23,11 +23,6 @@ class ExceptionHandler:
         elif isinstance(exc, ConflictException):
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT,
-                content={"message": exc.detail}
-            )
-        elif isinstance(exc, NoAuthException):
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"message": exc.detail}
             )
         elif isinstance(exc, RequestValidationError):
@@ -41,12 +36,6 @@ class ExceptionHandler:
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content={"detail": exc.errors()},
-            )
-        elif isinstance(exc, ExpiredSignatureError):
-            logger.debug(f"Token expired: {exc}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired"
             )
         elif isinstance(exc, BadRequestException):
             logger.debug(f"Bad request: {exc}")
