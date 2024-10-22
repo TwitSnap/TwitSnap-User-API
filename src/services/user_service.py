@@ -61,7 +61,7 @@ class UserService:
                            photo = user.photo,
                            amount_of_followers = len(user.followers),
                            amount_of_following = len(user.following),
-                           is_follwed_by_me = user.followers.is_connecected(my_user) if my_uid else None,
+                           is_follwed_by_me = user.followers.is_connected(my_user) if my_uid else None,
                            )
     
     async def get_my_user(self, user_id):
