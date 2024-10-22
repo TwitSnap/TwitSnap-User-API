@@ -4,7 +4,6 @@ from fastapi.exceptions import RequestValidationError
 from config.settings import *
 from exceptions.exception_handler import ExceptionHandler
 from routes.routes import router
-from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from config.settings import *

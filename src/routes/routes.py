@@ -10,3 +10,7 @@ router = APIRouter(
 router.include_router(register_router, prefix = '/register')
 router.include_router(user_router, prefix = '/users')
 router.include_router(admin_router, prefix = '/admin')
+
+@router.get("/health", tags=["Health Check"])
+async def health_check():
+    return {"status": "ok"}

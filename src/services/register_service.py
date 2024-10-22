@@ -26,7 +26,7 @@ class RegisterService:
             user = await self.service.create_user(register_data)
             auth_user_register = AuthUserRegister(id = user.uid, password = register_data.password)
 
-            url = AUTH_API_URI + AUTH_API_REGISTER_PATH
+            url = AUTH_API_URI + AUTH_API_REGISTER_PATH # type: ignore
             logger.debug(f"[AuthService] - Attempting to register at {url} with data: {auth_user_register.model_dump()}")
             response = await Requester.post(url, json_body = auth_user_register.model_dump())
             logger.debug(f"[AuthService] - Attempt to register user with data: {auth_user_register.model_dump()} - response: {response.text}")
@@ -54,7 +54,7 @@ class RegisterService:
         logger.debug(f"User already registered with email: {email}, id: {id} , username: {name}")
         return user
     
-    async def _verify_google_token(token):
+    async def _verify_google_token(self, token):
         # con access token
         # url = "https://www.googleapis.com/oauth2/v1/userinfo"
         # headers = {
