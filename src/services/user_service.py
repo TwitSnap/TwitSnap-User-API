@@ -1,7 +1,6 @@
 import random
 import string
 from fastapi import UploadFile
-from firebase_admin import storage
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.backoffice.ban_user_request import BanUserRequest
 from DTOs.notification.register_pin import RegisterPin
@@ -16,19 +15,23 @@ from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
 from exceptions.resource_not_found_exception import ResourceNotFoundException
 from config.settings import *
-from utils.requester import Requester
+from external.firebase_service import firebase_service
+from external.twitsnap_service import twitsnap_service
+
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
+        self.firebase_service = firebase_service
+        self.twitsnap_service = twitsnap_service
 
     async def create_user(self, register_request: UserRegister):
         new_user = User(**register_request.model_dump())
-        return self.user_repository.create_user(new_user)
+        return self.user_repository.save(new_user)
     
     async def create_user_with_federated_identity(self, google_register: GoogleRegister):
         new_user = User(**google_register.model_dump())
         new_user.verified = True
-        return self.user_repository.create_user(new_user)
+        return self.user_repository.save(new_user)
     
     async def get_user_by_email(self, email):
         logger.debug(f"Attempting to get user id by email: {email}")
@@ -94,11 +97,9 @@ class UserService:
                 setattr(user, attr, value)
 
         if photo:
-            logger.debug(f"Attempting to upload photo: {photo} for user with id: {id}")
-            url = await upload_photo_to_firebase(photo, id)
-            logger.debug(f"photo uploaded to firebase with link: {url}")
+            url = await self.firebase_service.upload_photo(photo, id)
             user.photo = url
-        eddited_user = self.user_repository.update_user(user)
+        eddited_user = self.user_repository.save(user)
         return UserProfile(uid = eddited_user.uid,
                             username = eddited_user.username,
                             phone = eddited_user.phone,
@@ -134,13 +135,13 @@ class UserService:
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid")
         
         user.verified = True
-        self.user_repository.update_user(user)
+        self.user_repository.save(user)
 
         return user
     async def ban_user(self, user_id, req: BanUserRequest):
         user = await self._get_user_by_id(user_id)    
         user.is_banned = req.is_banned
-        self.user_repository.update_user(user)
+        self.user_repository.save(user)
         return 
     
     async def get_user_by_id_admin(self, user_id):
@@ -158,25 +159,11 @@ class UserService:
         
         pin = self._generate_pin()
         redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
-        register_pin = RegisterPin(type='registration',
-                                    params={'username': user.username,
-                                            'pin': pin},
-                                    notifications = {"type": "email", 
-                                                        "destinations": [user.email],
-                                                        "sender": NOTIFICATION_SENDER}
-                                                        )
-        await Requester.post(NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH, json_body = register_pin.model_dump())
+        await self.twitsnap_service.send_register_pin_to_notification(user.email ,user.uid, pin)
         logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
         return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
     
     def _generate_pin(self):
         return ''.join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
-    
-    async def _upload_photo_to_firebase(self, photo: UploadFile, id: str):
-        bucket = storage.bucket()
-        blob = bucket.blob(f"{id}_{photo.filename}")
-        blob.upload_from_string( await photo.read(), content_type = photo.content_type)
-        blob.make_public()
-        return blob.public_url
 
 user_service = UserService(user_repository)

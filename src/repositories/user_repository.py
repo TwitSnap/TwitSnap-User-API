@@ -6,7 +6,7 @@ class UserRepository:
         self.database = database
 
     @db.transaction
-    def create_user(self, user)-> User:
+    def save(self, user)-> User:
         return user.save()
     
     @db.transaction
@@ -24,10 +24,6 @@ class UserRepository:
             return user
         except User.DoesNotExist:
             return None
-    
-    @db.transaction
-    def update_user(self, user):
-        return user.save()
     
     @db.transaction
     def get_users_by_username(self, username: str, offset: int, limit: int):

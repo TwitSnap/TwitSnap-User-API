@@ -44,7 +44,6 @@ def configure_routes(app: FastAPI):
 
 if __name__ == "__main__":
     init_database()
-    init_firebase()
     app = create_app()
     uvicorn.run(app, host = HOST, port = PORT, log_level= LOG_LEVEL)
 
