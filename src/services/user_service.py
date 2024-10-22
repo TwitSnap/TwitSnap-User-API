@@ -1,7 +1,11 @@
+import random
+import string
 from fastapi import UploadFile
 from firebase_admin import storage
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.backoffice.ban_user_request import BanUserRequest
+from DTOs.notification.register_pin import RegisterPin
+from DTOs.register.generated_pin_response import GeneratedPinResponse
 from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
@@ -12,6 +16,7 @@ from repositories.user_repository import user_repository
 from DTOs.register.user_register import UserRegister
 from exceptions.resource_not_found_exception import ResourceNotFoundException
 from config.settings import *
+from utils.requester import Requester
 class UserService:
     def __init__(self, user_repository):
         self.user_repository = user_repository
@@ -38,6 +43,10 @@ class UserService:
 
     async def get_user_by_id(self, id, my_uid = None):
         user = await self._get_user_by_id(id)
+        if user.is_banned:
+            logger.debug(f"User with id: {id} is banned")
+            raise ResourceNotFoundException(detail=f"User with id: {id} not found")
+        
         if my_uid:
             my_user = await self._get_user_by_id(my_uid)
         
@@ -134,11 +143,40 @@ class UserService:
         self.user_repository.update_user(user)
         return 
     
-async def upload_photo_to_firebase(photo: UploadFile, id: str):
-    bucket = storage.bucket()
-    blob = bucket.blob(f"{id}_{photo.filename}")
-    blob.upload_from_string( await photo.read(), content_type = photo.content_type)
-    blob.make_public()
-    return blob.public_url
+    async def get_user_by_id_admin(self, user_id):
+       return await self._get_user_by_id(user_id)
+    
+    async def get_all_users(self, offset: int, limit: int):
+        return self.user_repository.get_all_users(offset, limit)
+    
+    async def generate_register_pin(self, user_id):
+        user = await self._get_user_by_id(user_id)
+
+        if user.verified:
+            logger.debug(f"User with id: {user_id} is already verified")
+            raise ConflictException(detail=f"User with id: {user_id} is already verified")
+        
+        pin = self._generate_pin()
+        redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
+        register_pin = RegisterPin(type='registration',
+                                    params={'username': user.username,
+                                            'pin': pin},
+                                    notifications = {"type": "email", 
+                                                        "destinations": [user.email],
+                                                        "sender": NOTIFICATION_SENDER}
+                                                        )
+        await Requester.post(NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH, json_body = register_pin.model_dump())
+        logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
+        return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
+    
+    def _generate_pin(self):
+        return ''.join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
+    
+    async def _upload_photo_to_firebase(self, photo: UploadFile, id: str):
+        bucket = storage.bucket()
+        blob = bucket.blob(f"{id}_{photo.filename}")
+        blob.upload_from_string( await photo.read(), content_type = photo.content_type)
+        blob.make_public()
+        return blob.public_url
 
 user_service = UserService(user_repository)

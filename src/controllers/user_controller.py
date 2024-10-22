@@ -1,6 +1,5 @@
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
 from DTOs.backoffice.ban_user_request import BanUserRequest
 from DTOs.register.user_register import UserRegister
 from DTOs.user.edit_user import EditUser
@@ -72,6 +71,18 @@ class UserController:
     async def unban_user(self, user_id: str):
         try:
             return await self.user_service.unban_user(user_id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+    
+    async def get_user_by_id_admin(self, user_id: str):
+        try:
+            return await self.user_service.get_user_by_id_admin(user_id)
+        except Exception as e:
+            return await ExceptionHandler.handle_exception(e)
+        
+    async def get_all_users(self, offset: int, limit: int):
+        try:
+            return await self.user_service.get_all_users(offset, limit)
         except Exception as e:
             return await ExceptionHandler.handle_exception(e)
         

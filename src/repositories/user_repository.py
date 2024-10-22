@@ -33,10 +33,20 @@ class UserRepository:
     def get_users_by_username(self, username: str, offset: int, limit: int):
         if not username:
             return []
-        query = "MATCH (u:User) WHERE u.username STARTS WITH $username"
+        query = "MATCH (u:User) WHERE u.username STARTS WITH $username and u.is_banned = False"
         query += " RETURN u SKIP $offset LIMIT $limit"
         parameters = {
             "username": username,
+            "offset": offset,
+            "limit": limit
+        }
+        results, _ = db.cypher_query(query, parameters)
+        return [User.inflate(record[0]) for record in results]
+    
+    @db.transaction
+    def get_all_users(self, offset: int, limit: int):
+        query = "MATCH (u:User) RETURN u SKIP $offset LIMIT $limit"
+        parameters = {
             "offset": offset,
             "limit": limit
         }
