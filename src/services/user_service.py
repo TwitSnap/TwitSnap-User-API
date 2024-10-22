@@ -57,7 +57,7 @@ class UserService:
                            username = user.username, 
                            phone = user.phone,
                            country = user.country, 
-                           description = user.description, 
+                           description = user.description,
                            photo = user.photo,
                            amount_of_followers = len(user.followers),
                            amount_of_following = len(user.following),
@@ -118,7 +118,7 @@ class UserService:
         return res
     
     async def confirm_user(self, user_id, pin):
-        user = await self.get_user_by_id(user_id)
+        user = await self._get_user_by_id(user_id)
 
         if user.verified:
             logger.debug(f"User with id: {user_id} is already verified")
