@@ -29,7 +29,8 @@ class UserRepository:
     def get_users_by_username(self, username: str, offset: int, limit: int):
         if not username:
             return []
-        query = "MATCH (u:User) WHERE u.username STARTS WITH $username and u.is_banned = False"
+        username = username.lower()
+        query = "MATCH (u:User) WHERE toLower(u.username) STARTS WITH $username AND u.is_banned = false"
         query += " RETURN u SKIP $offset LIMIT $limit"
         parameters = {
             "username": username,
