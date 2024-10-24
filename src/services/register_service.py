@@ -28,8 +28,8 @@ class RegisterService:
         try:
             logger.debug(f"Attempting to register user with data: {register_data}")
             user = await self.service.create_user(register_data)
-            await self.twitsnap_service.send_user_credentials_to_auth(user.uid, register_data.password)
-            await self.service.generate_register_pin(user.uid)
+            # await self.twitsnap_service.send_user_credentials_to_auth(user.uid, register_data.password)
+            # await self.service.generate_register_pin(user.uid)
 
         except Exception as e:
             user.delete()

@@ -3,6 +3,7 @@ from DTOs.register.verify_register_pin import VerifyRegisterPin
 from fastapi import APIRouter, Header, Query, Request, logger,status, Depends
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.backoffice.ban_user_request import BanUserRequest
+from DTOs.user.follow_request import FollowRequest
 from DTOs.user.update_user_form import UpdateUserForm
 from DTOs.user.user_profile import UserProfile
 from DTOs.user.user_profile_preview import UserProfilePreview
@@ -37,5 +38,12 @@ async def get_user_by_id ( id : str,  request: Request):
 async def get_users(username: Optional[str] = Query(None), offset: int = Query(0, ge=0),limit: int = Query(10, gt=0)):
     return await user_controller.get_users_by_username(username, offset, limit)
 
+@user_router.post("/me/following", status_code=status.HTTP_204_NO_CONTENT)
+async def follow_user(request: Request, follow_request: FollowRequest):
+    return await user_controller.follow_user(request, follow_request)
+
+@user_router.delete("/me/following", status_code=status.HTTP_204_NO_CONTENT)
+async def unfollow_user(request: Request, follow_request: FollowRequest):
+    return await user_controller.unfollow_user(request, follow_request)
 
 

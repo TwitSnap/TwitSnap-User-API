@@ -16,5 +16,6 @@ class UserProfile(BaseModel):
     amount_of_following : Optional[int] = None
     verified: Optional[bool] = None
     is_follwed_by_me: Optional[bool] = None
+    is_banned: Optional[bool] = None
     followers: Optional[list[UserProfilePreview]] = None
     following: Optional[list[UserProfilePreview]] = None

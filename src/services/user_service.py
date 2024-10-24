@@ -151,7 +151,18 @@ class UserService:
        return await self._get_user_by_id(user_id)
     
     async def get_all_users(self, offset: int, limit: int):
-        return self.user_repository.get_all_users(offset, limit)
+        users = self.user_repository.get_all_users(offset, limit)
+
+        return [UserProfile(uid = user.uid, 
+                                username = user.username, 
+                                photo = user.photo,
+                                email = user.email,
+                                country = user.country,
+                                description = user.description,
+                                amount_of_followers = len(user.followers),
+                                amount_of_following = len(user.following),
+                                verified= user.verified,
+                                is_banned = user.is_banned,) for user in users]
     
     async def generate_register_pin(self, user_id):
         user = await self._get_user_by_id(user_id)
@@ -165,6 +176,37 @@ class UserService:
         await self.twitsnap_service.send_register_pin_to_notification(user.email ,user.username, pin)
         logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
         return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
+        
+    async def follow_user(self, my_uid, user_id):
+        logger.debug(f"Attempting to follow user with id: {user_id}")
+        if my_uid == user_id:
+            logger.debug(f"User with id: {my_uid} can't follow itself")
+            raise ConflictException(detail=f"User with id: {my_uid} can't follow itself")
+        
+        user = await self._get_user_by_id(user_id)
+        my_user = await self._get_user_by_id(my_uid)
+
+        if my_user.following.is_connected(user):
+            logger.debug(f"User with id: {my_uid} is already following user with id: {user_id}")
+            raise ConflictException(detail=f"user is already following user with id {user_id}")
+
+        my_user.following.connect(user)
+        logger.debug(f"User with id: {my_uid}- name:{my_user.username} is following user with id: {user_id}, name: {user.username}")
+        return
+    
+    async def unfollow_user(self, user_id, my_uid):
+        if my_uid == user_id:
+            logger.debug(f"User with id: {my_uid} can't follow itself")
+            raise ConflictException(detail=f"User with id: {my_uid} can't follow itself")
+        
+        user = await self._get_user_by_id(user_id)
+        my_user = await self._get_user_by_id(my_uid)
+
+        if not my_user.following.is_connected(user):
+            logger.debug(f"User with id: {my_uid} is not following user with id: {user_id}")
+            raise ConflictException(detail=f"user is not following user with id {user_id}")
+        my_user.following.disconnect(user)
+        return
     
     def _generate_pin(self):
         return ''.join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))

@@ -85,6 +85,20 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
     
+    async def follow_user(self, request: Request, follow_request):
+        try:
+            my_uid: str | None = self.get_current_user(request)
+            return await self.user_service.follow_user(my_uid, follow_request.id)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+        
+    async def unfollow_user(self, request: Request, follow_request):
+        try:
+            my_uid: str | None = self.get_current_user(request)
+            return await self.user_service.unfollow_user(my_uid, follow_request.id)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+    
     def get_current_user(self, req: Request):
         user_id = req.headers.get("user_id")
         logger.debug(f"User id found in headers: {user_id}")
