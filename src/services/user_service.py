@@ -9,6 +9,7 @@ from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
 from DTOs.user.user_profile_preview import UserProfilePreview
+from DTOs.user.user_builder import UserBuilder
 from exceptions.conflict_exception import ConflictException
 from models.user import User
 from repositories.user_repository import user_repository
@@ -24,13 +25,8 @@ class UserService:
         self.firebase_service = firebase_service
         self.twitsnap_service = twitsnap_service
 
-    async def create_user(self, register_request: UserRegister):
-        new_user = User(**register_request.model_dump())
-        return self.user_repository.save(new_user)
-    
-    async def create_user_with_federated_identity(self, google_register: GoogleRegister):
-        new_user = User(**google_register.model_dump())
-        new_user.verified = True
+    async def create_user(self, register_request: dict ):
+        new_user = User(**register_request)
         return self.user_repository.save(new_user)
     
     async def get_user_by_email(self, email):
@@ -53,30 +49,15 @@ class UserService:
         if my_uid:
             my_user = await self._get_user_by_id(my_uid)
         
-        return UserProfile(uid = user.uid, 
-                           username = user.username, 
-                           phone = user.phone,
-                           country = user.country, 
-                           description = user.description,
-                           photo = user.photo,
-                           amount_of_followers = len(user.followers),
-                           amount_of_following = len(user.following),
-                           is_follwed_by_me = user.followers.is_connected(my_user) if my_uid else None,
-                           )
+        user = UserBuilder(user).with_public_info().with_is_followed_by_me(user.followers.is_connected(my_user)).build()
+        return UserProfile(**user)
     
     async def get_my_user(self, user_id):
         user = await self._get_user_by_id(user_id)
-        return UserProfile(uid = user.uid, 
-                           username = user.username, 
-                           phone = user.phone,
-                           country = user.country, 
-                           description = user.description, 
-                           photo = user.photo,
-                           email = user.email,
-                           verified = user.verified,
-                           amount_of_followers = len(user.followers),
-                           amount_of_following = len(user.following),
-                           )
+
+        user = UserBuilder(user).with_public_info().with_private_info().build()
+        logger.debug(f"Found user with id: {user_id} - {user}")
+        return UserProfile(**user)
 
     async def _get_user_by_id(self, id):
         user = self.user_repository.find_user_by_id(id)
@@ -100,16 +81,8 @@ class UserService:
             url = await self.firebase_service.upload_photo(photo, id)
             user.photo = url
         eddited_user = self.user_repository.save(user)
-        return UserProfile(uid = eddited_user.uid,
-                            username = eddited_user.username,
-                            phone = eddited_user.phone,
-                            country = eddited_user.country,
-                            email= eddited_user.email,
-                            description = eddited_user.description,
-                            photo = eddited_user.photo,
-                            amount_of_followers = len(eddited_user.followers),
-                            amount_of_following = len(eddited_user.following)
-                            )
+        user = UserBuilder(eddited_user).with_public_info().with_private_info().build()
+        return UserProfile(**user)
         
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)
@@ -152,17 +125,12 @@ class UserService:
     
     async def get_all_users(self, offset: int, limit: int):
         users = self.user_repository.get_all_users(offset, limit)
-
-        return [UserProfile(uid = user.uid, 
-                                username = user.username, 
-                                photo = user.photo,
-                                email = user.email,
-                                country = user.country,
-                                description = user.description,
-                                amount_of_followers = len(user.followers),
-                                amount_of_following = len(user.following),
-                                verified= user.verified,
-                                is_banned = user.is_banned,) for user in users]
+        
+        return [UserProfile(** UserBuilder(user)
+                            .with_public_info()
+                            .with_private_info()
+                            .with_is_banned()
+                            .build() ) for user in users]
     
     async def generate_register_pin(self, user_id):
         user = await self._get_user_by_id(user_id)

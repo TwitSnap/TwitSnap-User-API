@@ -27,7 +27,7 @@ class RegisterService:
             raise ConflictException(f"The email address {register_data.email} is already registered.")
         try:
             logger.debug(f"Attempting to register user with data: {register_data}")
-            user = await self.service.create_user(register_data)
+            user = await self.service.create_user(register_data.model_dump())
             # await self.twitsnap_service.send_user_credentials_to_auth(user.uid, register_data.password)
             # await self.service.generate_register_pin(user.uid)
 
@@ -43,12 +43,16 @@ class RegisterService:
         email = user_info['email']     
         name = user_info['name'] 
         photo = user_info['picture']
-        google_register = GoogleRegister(uid = id, email = email, username = name, photo = photo)        
+        google_register = {"uid": id,
+                                        "email": email, 
+                                        "username": name, 
+                                        "photo": photo,
+                                        "verified": True}        
 
         user = self.service.user_repository.find_user_by_email(email)
         if user is None:
             logger.debug(f"Attempting to register with google: id: {id}, email: {email}, name: {name}, photo: {photo}")   
-            user = await self.service.create_user_with_federated_identity(google_register)
+            user = await self.service.create_user(google_register)
             return user
         logger.debug(f"User already registered with email: {email}, id: {id} , username: {name}")
         return user
