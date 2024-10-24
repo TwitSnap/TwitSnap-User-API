@@ -1,4 +1,5 @@
 from typing import Optional, List
+from DTOs.register.verify_register_pin import VerifyRegisterPin
 from fastapi import APIRouter, Header, Query, Request, logger,status, Depends
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.backoffice.ban_user_request import BanUserRequest
@@ -20,9 +21,9 @@ async def get_user_auth_status_by_email(email: str):
 async def edit_my_user (request: Request, user_update_form: UpdateUserForm = Depends(UpdateUserForm)):
     return await user_controller.edit_user_by_id(request ,user_update_form)
 
-@user_router.get("/confirmation")
-async def verify_register_pin(id: str, pin: str):
-    return await user_controller.confirm_user(id, pin)
+@user_router.post("/confirmation")
+async def verify_register_pin( req: VerifyRegisterPin):
+    return await user_controller.confirm_user(req.id, req.pin)
 
 @user_router.post("/{id}/pin",)
 async def refresh_register_pin(id: str):

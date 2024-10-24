@@ -49,7 +49,6 @@ class RegisterService:
         if user is None:
             logger.debug(f"Attempting to register with google: id: {id}, email: {email}, name: {name}, photo: {photo}")   
             user = await self.service.create_user_with_federated_identity(google_register)
-            # return await self.service.generate_register_pin(user.uid)
             return user
         logger.debug(f"User already registered with email: {email}, id: {id} , username: {name}")
         return user

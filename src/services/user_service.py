@@ -135,6 +135,9 @@ class UserService:
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid")
         
         user.verified = True
+
+        redis_conn.delete(user_id)
+
         self.user_repository.save(user)
 
         return user
@@ -159,7 +162,7 @@ class UserService:
         
         pin = self._generate_pin()
         redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
-        await self.twitsnap_service.send_register_pin_to_notification(user.email ,user.uid, pin)
+        await self.twitsnap_service.send_register_pin_to_notification(user.email ,user.username, pin)
         logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
         return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
     
