@@ -156,13 +156,13 @@ class UserService:
 
         if my_user.following.is_connected(user):
             logger.debug(f"User with id: {my_uid} is already following user with id: {user_id}")
-            raise ConflictException(detail=f"user is already following user with id {user_id}")
-
+            return
+        
         my_user.following.connect(user)
         logger.debug(f"User with id: {my_uid}- name:{my_user.username} is following user with id: {user_id}, name: {user.username}")
         return
     
-    async def unfollow_user(self, user_id, my_uid):
+    async def unfollow_user(self, my_uid, user_id):
         if my_uid == user_id:
             logger.debug(f"User with id: {my_uid} can't follow itself")
             raise ConflictException(detail=f"User with id: {my_uid} can't follow itself")
@@ -172,8 +172,59 @@ class UserService:
 
         if not my_user.following.is_connected(user):
             logger.debug(f"User with id: {my_uid} is not following user with id: {user_id}")
-            raise ConflictException(detail=f"user is not following user with id {user_id}")
+            return
+        
         my_user.following.disconnect(user)
+        return
+    
+    async def get_followers(self, my_uid, user_id, offset, limit):
+        user = await self._get_user_by_id(user_id)
+        my_user = await self._get_user_by_id(my_uid)
+
+        self._is_following_each_other(my_user, user)
+
+        followers = self.user_repository.get_followers(user_id, offset, limit)
+        logger.debug(f"Found {len(followers)} followers for user with id: {user_id}")
+        res =  UserBuilder(my_user).with_followers(followers).build()
+        return UserProfile(**res)
+    
+    async def get_following(self, my_uid, user_id, offset, limit):
+        user = await self._get_user_by_id(user_id)
+        my_user = await self._get_user_by_id(my_uid)
+
+        self._is_following_each_other(my_user, user)
+
+        following = self.user_repository.get_following(user_id, offset, limit)
+        logger.debug(f"Found {len(following)} following for user with id: {user_id}")
+        res =  UserBuilder(my_user).with_following(following).build()
+        return UserProfile(**res)
+    
+    async def get_my_followers(self, my_uid, offset, limit):
+        my_user = await self._get_user_by_id(my_uid)
+        followers = self.user_repository.get_followers(my_uid, offset, limit)
+        logger.debug(f"Found {len(followers)} followers for user with id: {my_uid}")
+        res =  UserBuilder(my_user).with_followers(followers).build()
+        return UserProfile(**res)
+    
+    async def get_my_following(self, my_uid, offset, limit):
+        my_user = await self._get_user_by_id(my_uid)
+        following = self.user_repository.get_following(my_uid,offset, limit)
+        logger.debug(f"Found {len(following)} following for user with id: {my_uid}")
+        res =  UserBuilder(my_user).with_following(following).build()
+        return UserProfile(**res)
+
+
+
+    def _is_following_each_other(self, my_user, user):
+         ## CA - users cannot see other users followers and following if they are not following each other
+        if not my_user.following.is_connected(user):
+            logger.debug(f"my User with id: {my_user.uid} is not following user with id: {user.uid}")
+            raise ConflictException(detail=f"User with id: {my_user.uid} is not following user with id: {user.uid}")
+        logger.debug(f"User with id: {my_user.uid} is following user with id: {user.uid}")
+        if not my_user.followers.is_connected(user):
+            logger.debug(f"my User with id: {my_user.uid} is not followed by user with id: {user.uid}")
+            raise ConflictException(detail=f"User with id: {my_user.uid} is not followed by user with id: {user.uid}")
+        logger.debug(f"User with id: {my_user.uid} is followed by user with id: {user.uid}")
         return
     
     def _generate_pin(self):

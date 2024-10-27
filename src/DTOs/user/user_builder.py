@@ -36,22 +36,37 @@ class UserBuilder:
         self.data['username'] = self.user.username
         self.data['photo'] = self.user.photo
         return self
-
-    def with_folowers_and_following(self, followers, following):
-        self.datap['uid']= self.user.uid    
+    
+    def with_followers(self, followers):
         self.data['followers'] = []
-        self.data['following'] = []
-        self.data['amount_of_followers'] = len(followers)
-        self.data['amount_of_following'] = len(following)
+
         for follower in followers:
-            self.data['followers'].append(UserBuilder(follower).profile_preview()
-                                          .is_followed_by_me(follower.followers.is_connected(self.user))
-                                          .build())
+            if follower.uid == self.user.uid:
+                user = UserBuilder(follower).profile_preview().with_description().build()
+            else:
+                user = UserBuilder(follower).profile_preview().with_description().with_is_followed_by_me(follower.followers.is_connected(self.user)).build()
+            self.data['followers'].append(user)
+
+        return self
+    
+    def with_following(self, following):
+        self.data['following'] = []
 
         for follow in following:
-            self.data['following'].append(UserBuilder(follow).profile_preview()
-                                          .is_followed_by_me(follow.followers.is_connected(self.user))
-                                          .build())
+            if follow.uid == self.user.uid:
+                user = UserBuilder(follow).profile_preview().with_description().build()
+            else:
+                user = UserBuilder(follow).profile_preview().with_description().with_is_followed_by_me(follow.followers.is_connected(self.user)).build()
+            self.data['following'].append(user)
+
+        return self
+
+    def with_description(self):
+        self.data['description'] = self.user.description
+        return self
+    
+    def with_is_followed_by_me(self, is_followed_by_me: bool):
+        self.data['is_followed_by_me'] = is_followed_by_me
         return self
     
     def build(self):

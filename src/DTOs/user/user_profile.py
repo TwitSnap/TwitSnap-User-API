@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from DTOs.user.user_profile_preview import UserProfilePreview
 
 class UserProfile(BaseModel):
-    uid: Optional[str] 
+    uid: Optional[str] = None
     username: Optional[str] = None
     photo: Optional[str] = None
     country: Optional[str] = None 

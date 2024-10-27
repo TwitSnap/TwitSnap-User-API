@@ -40,7 +40,6 @@ class UserController:
     async def edit_user_by_id(self,request: Request,update_form: UpdateUserForm):
         try:
             my_uid: str | None = self.get_current_user(request)
-
             new_user_data = EditUser(username=update_form.username, phone=update_form.phone, country=update_form.country, description=update_form.description)
             if update_form.photo and not update_form.photo.filename.endswith((".jpg", ".jpeg", ".png")):
                 logger.debug(f"Received file with content type {update_form.photo.content_type} - Only images are supported")
@@ -99,11 +98,34 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
     
+    async def get_followers(self, request: Request, id: str, offset: int, limit: int):
+        try:
+            my_uid: str | None = self.get_current_user(request)
+            if id == 'me' or id == my_uid:
+                logger.debug(f"Getting my followers with id: {my_uid}")
+                return await self.user_service.get_my_followers(my_uid, offset, limit)
+            
+            return await self.user_service.get_followers(my_uid, id, offset, limit)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+    
+    async def get_following(self, request: Request, id: str, offset: int, limit: int):
+        try:
+            my_uid: str | None = self.get_current_user(request)
+            if id == 'me'  or id == my_uid:
+                logger.debug(f"Getting my following with id: {my_uid}")
+                return await self.user_service.get_my_following(my_uid, offset, limit)
+            logger.debug(f"Getting following of user with id: {id}, my id: {my_uid}")
+            return await self.user_service.get_following(my_uid, id, offset, limit)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+        
     def get_current_user(self, req: Request):
         user_id = req.headers.get("user_id")
         logger.debug(f"User id found in headers: {user_id}")
         if user_id is None:
             raise BadRequestException(detail= "User id not found in headers")
         return user_id
+    
 user_controller = UserController(user_service)
 

@@ -46,4 +46,10 @@ async def follow_user(request: Request, follow_request: FollowRequest):
 async def unfollow_user(request: Request, follow_request: FollowRequest):
     return await user_controller.unfollow_user(request, follow_request)
 
+@user_router.get("/{id}/followers", status_code=status.HTTP_200_OK, response_model = UserProfile, response_model_exclude_none=True)
+async def get_followers(id:str, request: Request, offset: int = Query(0, ge=0),limit: int = Query(10, gt=0)):   
+    return await user_controller.get_followers(request, id, offset, limit)
 
+@user_router.get("/{id}/following", status_code=status.HTTP_200_OK, response_model = UserProfile, response_model_exclude_none=True)
+async def get_following(id:str, request: Request, offset: int = Query(0, ge=0),limit: int = Query(10, gt=0)):   
+    return await user_controller.get_following(request, id, offset, limit)

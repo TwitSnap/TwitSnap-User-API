@@ -49,5 +49,27 @@ class UserRepository:
         }
         results, _ = db.cypher_query(query, parameters)
         return [User.inflate(record[0]) for record in results]
-     
+    
+    @db.transaction
+    def get_following(self, id: str, offset: int, limit: int):
+        query = "MATCH (u:User)-[:FOLLOW]->(f:User) WHERE u.uid = $id RETURN f SKIP $offset LIMIT $limit"
+        parameters = {
+            "id": id,
+            "offset": offset,
+            "limit": limit
+        }
+        results, _ = db.cypher_query(query, parameters)
+        return [User.inflate(record[0]) for record in results]
+    
+    @db.transaction
+    def get_followers(self, id: str, offset: int, limit: int):
+        query = "MATCH (u:User)<-[:FOLLOW]-(f:User) WHERE u.uid = $id RETURN f SKIP $offset LIMIT $limit"
+        parameters = {
+            "id": id,
+            "offset": offset,
+            "limit": limit
+        }
+        results, _ = db.cypher_query(query, parameters)
+        return [User.inflate(record[0]) for record in results]
+    
 user_repository = UserRepository()
