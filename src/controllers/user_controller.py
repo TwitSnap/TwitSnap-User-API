@@ -127,5 +127,6 @@ class UserController:
             raise BadRequestException(detail= "User id not found in headers")
         return user_id
     
+    
 user_controller = UserController(user_service)
 
