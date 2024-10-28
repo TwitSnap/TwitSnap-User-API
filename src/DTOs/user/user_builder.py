@@ -69,6 +69,12 @@ class UserBuilder:
         self.data['is_followed_by_me'] = is_followed_by_me
         return self
     
+    def with_interests(self):
+        self.data['interests'] = []
+        for interest in self.user.interests:
+            self.data['interests'].append(interest.name)
+        return self
+    
     def build(self):
         return self.data
 

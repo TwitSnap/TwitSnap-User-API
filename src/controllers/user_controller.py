@@ -40,7 +40,7 @@ class UserController:
     async def edit_user_by_id(self,request: Request,update_form: UpdateUserForm):
         try:
             my_uid: str | None = self.get_current_user(request)
-            new_user_data = EditUser(username=update_form.username, phone=update_form.phone, country=update_form.country, description=update_form.description)
+            new_user_data = EditUser(username=update_form.username, phone=update_form.phone, country=update_form.country, description=update_form.description, interests=update_form.interests)
             if update_form.photo and not update_form.photo.filename.endswith((".jpg", ".jpeg", ".png")):
                 logger.debug(f"Received file with content type {update_form.photo.content_type} - Only images are supported")
                 raise RequestValidationError(f"Received file with content type {update_form.photo.content_type} - Only images are supported")

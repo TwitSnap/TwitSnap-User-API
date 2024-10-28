@@ -3,6 +3,7 @@ from neomodel import config, db
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 from utils.logger import Logger
+from models.interest import Interest
 import redis
 
 load_dotenv()
@@ -15,7 +16,6 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 AUTH_API_URI = os.getenv("AUTH_API_URI")
 AUTH_API_REGISTER_PATH = os.getenv("AUTH_API_REGISTER_PATH")
 AUTH_API_LOGIN_PATH = os.getenv("AUTH_API_LOGIN_PATH")
-DB_TEST_URL = 'bolt://neo4j:testpassword@localhost:7687'
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE  = os.getenv("LOG_FILE", "user_ms.log")
 FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
@@ -31,6 +31,16 @@ NOTIFICATION_API_SEND_PATH = os.getenv("NOTIFICATION_API_SEND_PATH")
 DEFAULT_PROFILE_PHOTO = os.getenv("DEFAULT_PROFILE_PHOTO")
 NOTIFICATION_SENDER = os.getenv("NOTIFICATION_SENDER")
 NOTIFICATION_DESTINATION_COPY = os.getenv("NOTIFICATION_DESTINATION_COPY")
+INTERESTS = [
+    "entretenimiento",
+    "videojuegos",
+    "música",
+    "noticias",
+    "deportes",
+    "tecnología",
+    "comida",
+    "salud",
+]
 logger = Logger(LOG_LEVEL, LOG_FILE)
 
 def init_database():
@@ -39,7 +49,15 @@ def init_database():
         db.set_connection(config.DATABASE_URL)
         config.connection_timeout = 20
         logger.info(f"Connecting to database at {config.DATABASE_URL}")
-        # db.cypher_query("MATCH (n) DETACH DELETE n")
+
+        for interest in INTERESTS:
+            i = Interest.nodes.get_or_none(name=interest)
+            if i is None:
+                Interest(name = interest).save()
+                logger.debug(f"Interest {interest} created.")
+            else:
+                logger.debug(f"Interest {interest} already exists.")
+
         logger.info("Successfully connected to the database.")
     except Exception as e:
         logger.error(f"Database connection error: {e}")

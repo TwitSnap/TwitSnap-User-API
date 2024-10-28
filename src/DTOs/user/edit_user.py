@@ -6,3 +6,4 @@ class EditUser(BaseModel):
     phone: Optional [str] = None
     country: Optional [str] = None
     description: Optional [str] = None
+    interests: Optional [list[str]] = None

@@ -1,5 +1,5 @@
 from neomodel import StructuredNode, StringProperty,RelationshipFrom, UniqueIdProperty, RelationshipTo, BooleanProperty
-
+from models.interest import Interest
 from config.settings import DEFAULT_PROFILE_PHOTO
 
 class User(StructuredNode):
@@ -14,3 +14,4 @@ class User(StructuredNode):
     is_banned = BooleanProperty(default = False)
     followers = RelationshipFrom('User', 'FOLLOW')
     following = RelationshipTo('User', 'FOLLOW')    
+    interests = RelationshipTo('Interest', 'HAS_INTEREST') 

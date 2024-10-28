@@ -19,7 +19,7 @@ class RegisterService:
         self.service = user_service
         self.twitsnap_service = twitsnap_service
         self.google_service  = google_service
-
+    
     async def register(self, register_data: UserRegister):
 
         if await self.service.exists_user_by_email(register_data.email):
@@ -30,9 +30,9 @@ class RegisterService:
             user = await self.service.create_user(register_data.model_dump())
             # await self.twitsnap_service.send_user_credentials_to_auth(user.uid, register_data.password)
             # await self.service.generate_register_pin(user.uid)
-
+            
         except Exception as e:
-            user.delete()
+            self.service.delete_user_by_id(user.uid)
             logger.error(f"Error attempt to register user: {str(e)}")
             raise UserRegistrationException(str(e))
         return user    

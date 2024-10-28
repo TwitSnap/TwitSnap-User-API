@@ -10,6 +10,11 @@ class UserRepository:
         return user.save()
     
     @db.transaction
+    def delete_user_by_id(self, id):
+        user = User.nodes.get( uid = id)
+        user.delete()
+
+    @db.transaction
     def find_user_by_email(self, email):
         try:
             user = User.nodes.get( email = email)

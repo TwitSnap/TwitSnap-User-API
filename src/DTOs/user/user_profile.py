@@ -14,6 +14,7 @@ class UserProfile(BaseModel):
     phone: Optional[str] = None
     amount_of_followers: Optional[int] = None
     amount_of_following : Optional[int] = None
+    interests: Optional[list[str]] = None
     verified: Optional[bool] = None
     is_follwed_by_me: Optional[bool] = None
     is_banned: Optional[bool] = None
