@@ -1,4 +1,5 @@
-from neomodel import StructuredNode, StringProperty, RelationshipFrom
+from neomodel import StructuredNode, StringProperty
+
 
 class Interest(StructuredNode):
-    name = StringProperty(unique_index=True, required=True) 
+    name = StringProperty(unique_index=True, required=True)

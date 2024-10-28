@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class UserProfilePreview(BaseModel):
-    uid: Optional[str] 
+    uid: Optional[str]
     username: Optional[str] = None
     photo: Optional[str] = None
     description: Optional[str] = None

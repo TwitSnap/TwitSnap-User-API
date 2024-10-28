@@ -3,9 +3,7 @@ import string
 from fastapi import UploadFile
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.backoffice.ban_user_request import BanUserRequest
-from DTOs.notification.register_pin import RegisterPin
 from DTOs.register.generated_pin_response import GeneratedPinResponse
-from DTOs.register.google_register import GoogleRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
 from DTOs.user.user_profile_preview import UserProfilePreview
@@ -14,11 +12,11 @@ from exceptions.conflict_exception import ConflictException
 from models.user import User
 from models.interest import Interest
 from repositories.user_repository import user_repository
-from DTOs.register.user_register import UserRegister
 from exceptions.resource_not_found_exception import ResourceNotFoundException
-from config.settings import *
+from config.settings import logger, redis_conn, REGISTER_PIN_TTL, REGISTER_PIN_LENGHT
 from external.firebase_service import firebase_service
 from external.twitsnap_service import twitsnap_service
+
 
 class UserService:
     def __init__(self, user_repository):
@@ -28,39 +26,63 @@ class UserService:
 
     async def create_user(self, register_request: dict):
         # logger.debug(f"Attempting to create user with data: {register_request}")
-        user = User(username=register_request['username'],email=register_request['email'],password=register_request['password'],phone=register_request['phone'],country=register_request['country']).save()
-        self.update_user_interests(user, register_request['interests'])
+        user = User(
+            username=register_request["username"],
+            email=register_request["email"],
+            password=register_request["password"],
+            phone=register_request["phone"],
+            country=register_request["country"],
+        ).save()
+        self.update_user_interests(user, register_request["interests"])
         logger.debug(f"User created with id: {user.uid}")
-        user = UserBuilder(user).with_public_info().with_private_info().with_interests().build()
-        return UserProfile(**user) 
+        user = (
+            UserBuilder(user)
+            .with_public_info()
+            .with_private_info()
+            .with_interests()
+            .build()
+        )
+        return UserProfile(**user)
 
     async def get_user_by_email(self, email):
         logger.debug(f"Attempting to get user id by email: {email}")
         user = self.user_repository.find_user_by_email(email)
         if user is None:
             logger.debug(f"User not found with email: {email}")
-            raise ResourceNotFoundException(detail=f"User not found with email: {email}")
+            raise ResourceNotFoundException(
+                detail=f"User not found with email: {email}"
+            )
         logger.debug(f"Found user with email: {email} and id: {user.uid}")
         logger.debug(f"user is_banned status: {user.is_banned}")
-        return AuthUserResponse(uid = user.uid, is_banned = user.is_banned)
-    
+        return AuthUserResponse(uid=user.uid, is_banned=user.is_banned)
 
-    async def get_user_by_id(self, id, my_uid = None):
+    async def get_user_by_id(self, id, my_uid=None):
         user = await self._get_user_by_id(id)
         if user.is_banned:
             logger.debug(f"User with id: {id} is banned")
             raise ResourceNotFoundException(detail=f"User with id: {id} not found")
-        
+
         if my_uid:
             my_user = await self._get_user_by_id(my_uid)
-        
-        user = UserBuilder(user).with_public_info().with_is_followed_by_me(user.followers.is_connected(my_user)).build()
+
+        user = (
+            UserBuilder(user)
+            .with_public_info()
+            .with_is_followed_by_me(user.followers.is_connected(my_user))
+            .build()
+        )
         return UserProfile(**user)
-    
+
     async def get_my_user(self, user_id):
         user = await self._get_user_by_id(user_id)
 
-        user = UserBuilder(user).with_public_info().with_private_info().with_interests().build()
+        user = (
+            UserBuilder(user)
+            .with_public_info()
+            .with_private_info()
+            .with_interests()
+            .build()
+        )
         logger.debug(f"Found user with id: {user_id} - {user}")
         return UserProfile(**user)
 
@@ -73,14 +95,16 @@ class UserService:
 
     async def exists_user_by_email(self, email):
         return self.user_repository.find_user_by_email(email) is not None
-    
-    async def edit_user_by_id(self, user_data: EditUser, photo: UploadFile , id :str):
-        logger.debug(f"Attempting to change user data with id: {id}. New values: {user_data}")
+
+    async def edit_user_by_id(self, user_data: EditUser, photo: UploadFile, id: str):
+        logger.debug(
+            f"Attempting to change user data with id: {id}. New values: {user_data}"
+        )
         user = await self._get_user_by_id(id)
 
         for attr, value in user_data.model_dump().items():
             if value is not None:
-                if attr == 'interests':
+                if attr == "interests":
                     continue
                 setattr(user, attr, value)
         self.update_user_interests(user, user_data.interests)
@@ -91,30 +115,35 @@ class UserService:
         eddited_user = self.user_repository.save(user)
         user = UserBuilder(eddited_user).with_public_info().with_private_info().build()
         return UserProfile(**user)
-        
+
     async def get_users_by_username(self, username: str, offset: int, limit: int):
         users = self.user_repository.get_users_by_username(username, offset, limit)
-        res = [UserProfilePreview(uid = user.uid, username = user.username , photo= user.photo )for user in users]
+        res = [
+            UserProfilePreview(uid=user.uid, username=user.username, photo=user.photo)
+            for user in users
+        ]
         logger.debug(f"Found {len(users)} users with username {username}, list: {res}")
         return res
-    
+
     async def confirm_user(self, user_id, pin):
         user = await self._get_user_by_id(user_id)
 
         if user.verified:
             logger.debug(f"User with id: {user_id} is already verified")
-            raise ConflictException(detail=f"User with id: {user_id} is already verified")
-        
+            raise ConflictException(
+                detail=f"User with id: {user_id} is already verified"
+            )
+
         pin_from_uid = redis_conn.get(user_id)
 
         if pin_from_uid is None:
             logger.debug(f"Pin {pin} is invalid or expired")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid or expired")
-            
+
         if pin_from_uid.decode() != pin:
             logger.debug(f"Pin {pin} is invalid for user with id: {user_id}")
             raise ResourceNotFoundException(detail=f"Pin {pin} is invalid")
-        
+
         user.verified = True
 
         redis_conn.delete(user_id)
@@ -122,70 +151,97 @@ class UserService:
         self.user_repository.save(user)
 
         return user
+
     async def ban_user(self, user_id, req: BanUserRequest):
-        user = await self._get_user_by_id(user_id)    
+        user = await self._get_user_by_id(user_id)
         user.is_banned = req.is_banned
         self.user_repository.save(user)
-        return 
-    
+        return
+
     async def get_user_by_id_admin(self, user_id):
         user: User = await self._get_user_by_id(user_id)
-        return UserBuilder(user).with_public_info().with_private_info().with_is_banned().with_interests().build()
-    
+        return (
+            UserBuilder(user)
+            .with_public_info()
+            .with_private_info()
+            .with_is_banned()
+            .with_interests()
+            .build()
+        )
+
     async def get_all_users(self, offset: int, limit: int):
         users = self.user_repository.get_all_users(offset, limit)
-        
-        return [UserProfile(** UserBuilder(user)
-                            .with_public_info()
-                            .with_private_info()
-                            .with_is_banned()
-                            .build() ) for user in users]
-    
+
+        return [
+            UserProfile(
+                **UserBuilder(user)
+                .with_public_info()
+                .with_private_info()
+                .with_is_banned()
+                .build()
+            )
+            for user in users
+        ]
+
     async def generate_register_pin(self, user_id):
         user = await self._get_user_by_id(user_id)
 
         if user.verified:
             logger.debug(f"User with id: {user_id} is already verified")
-            raise ConflictException(detail=f"User with id: {user_id} is already verified")
-        
+            raise ConflictException(
+                detail=f"User with id: {user_id} is already verified"
+            )
+
         pin = self._generate_pin()
         redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
-        await self.twitsnap_service.send_register_pin_to_notification(user.email ,user.username, pin)
+        await self.twitsnap_service.send_register_pin_to_notification(
+            user.email, user.username, pin
+        )
         logger.debug(f"Pin generated for user with id: {user_id} - {pin}")
-        return GeneratedPinResponse(pin_ttl = REGISTER_PIN_TTL)
-        
+        return GeneratedPinResponse(pin_ttl=REGISTER_PIN_TTL)
+
     async def follow_user(self, my_uid, user_id):
         logger.debug(f"Attempting to follow user with id: {user_id}")
         if my_uid == user_id:
             logger.debug(f"User with id: {my_uid} can't follow itself")
-            raise ConflictException(detail=f"User with id: {my_uid} can't follow itself")
-        
+            raise ConflictException(
+                detail=f"User with id: {my_uid} can't follow itself"
+            )
+
         user = await self._get_user_by_id(user_id)
         my_user = await self._get_user_by_id(my_uid)
 
         if my_user.following.is_connected(user):
-            logger.debug(f"User with id: {my_uid} is already following user with id: {user_id}")
+            logger.debug(
+                f"User with id: {my_uid} is already following user with id: {user_id}"
+            )
             return
-        
+
         my_user.following.connect(user)
-        logger.debug(f"User with id: {my_uid}- name:{my_user.username} is following user with id: {user_id}, name: {user.username}")
+        logger.debug(
+            f"User with id: {my_uid}- name:{my_user.username} is following user with id: {user_id}, name: {user.username}"
+        )
         return
-    
+
     async def unfollow_user(self, my_uid, user_id):
         if my_uid == user_id:
             logger.debug(f"User with id: {my_uid} can't follow itself")
-            raise ConflictException(detail=f"User with id: {my_uid} can't follow itself")
-        
+            raise ConflictException(
+                detail=f"User with id: {my_uid} can't follow itself"
+            )
+
         user = await self._get_user_by_id(user_id)
         my_user = await self._get_user_by_id(my_uid)
 
         if not my_user.following.is_connected(user):
-            logger.debug(f"User with id: {my_uid} is not following user with id: {user_id}")
+            logger.debug(
+                f"User with id: {my_uid} is not following user with id: {user_id}"
+            )
             return
-        
+
         my_user.following.disconnect(user)
         return
-    
+
     async def get_followers(self, my_uid, user_id, offset, limit):
         user = await self._get_user_by_id(user_id)
         my_user = await self._get_user_by_id(my_uid)
@@ -194,9 +250,9 @@ class UserService:
 
         followers = self.user_repository.get_followers(user_id, offset, limit)
         logger.debug(f"Found {len(followers)} followers for user with id: {user_id}")
-        res =  UserBuilder(my_user).with_followers(followers).build()
+        res = UserBuilder(my_user).with_followers(followers).build()
         return UserProfile(**res)
-    
+
     async def get_following(self, my_uid, user_id, offset, limit):
         user = await self._get_user_by_id(user_id)
         my_user = await self._get_user_by_id(my_uid)
@@ -205,39 +261,52 @@ class UserService:
 
         following = self.user_repository.get_following(user_id, offset, limit)
         logger.debug(f"Found {len(following)} following for user with id: {user_id}")
-        res =  UserBuilder(my_user).with_following(following).build()
+        res = UserBuilder(my_user).with_following(following).build()
         return UserProfile(**res)
-    
+
     async def get_my_followers(self, my_uid, offset, limit):
         my_user = await self._get_user_by_id(my_uid)
         followers = self.user_repository.get_followers(my_uid, offset, limit)
         logger.debug(f"Found {len(followers)} followers for user with id: {my_uid}")
-        res =  UserBuilder(my_user).with_followers(followers).build()
+        res = UserBuilder(my_user).with_followers(followers).build()
         return UserProfile(**res)
-    
+
     async def get_my_following(self, my_uid, offset, limit):
         my_user = await self._get_user_by_id(my_uid)
-        following = self.user_repository.get_following(my_uid,offset, limit)
+        following = self.user_repository.get_following(my_uid, offset, limit)
         logger.debug(f"Found {len(following)} following for user with id: {my_uid}")
-        res =  UserBuilder(my_user).with_following(following).build()
+        res = UserBuilder(my_user).with_following(following).build()
         return UserProfile(**res)
 
     async def _is_following_each_other(self, my_user, user):
-         ## CA - users cannot see other users followers and following if they are not following each other
+        # CA - users cannot see other users followers and following if they are
+        # not following each other
         if not my_user.following.is_connected(user):
-            logger.debug(f"my User with id: {my_user.uid} is not following user with id: {user.uid}")
-            raise ConflictException(detail=f"User with id: {my_user.uid} is not following user with id: {user.uid}")
-        logger.debug(f"User with id: {my_user.uid} is following user with id: {user.uid}")
+            logger.debug(
+                f"my User with id: {my_user.uid} is not following user with id: {user.uid}"
+            )
+            raise ConflictException(
+                detail=f"User with id: {my_user.uid} is not following user with id: {user.uid}"
+            )
+        logger.debug(
+            f"User with id: {my_user.uid} is following user with id: {user.uid}"
+        )
         if not my_user.followers.is_connected(user):
-            logger.debug(f"my User with id: {my_user.uid} is not followed by user with id: {user.uid}")
-            raise ConflictException(detail=f"User with id: {my_user.uid} is not followed by user with id: {user.uid}")
-        logger.debug(f"User with id: {my_user.uid} is followed by user with id: {user.uid}")
-        
+            logger.debug(
+                f"my User with id: {my_user.uid} is not followed by user with id: {user.uid}"
+            )
+            raise ConflictException(
+                detail=f"User with id: {my_user.uid} is not followed by user with id: {user.uid}"
+            )
+        logger.debug(
+            f"User with id: {my_user.uid} is followed by user with id: {user.uid}"
+        )
+
     def update_user_interests(self, user: User, interests: list[str]):
         logger.debug(f"Attempting to update user interests: {interests}")
         if interests is None:
             return
-        
+
         user.interests.disconnect_all()
         for i in interests:
             interest = Interest.nodes.get_or_none(name=i.lower())
@@ -246,11 +315,12 @@ class UserService:
                 logger.debug(f"Connected interest '{i}' to user with id: {user.uid}")
             else:
                 logger.warning(f"Interest '{i}' not found and could not be connected.")
-    
+
     def delete_user_by_id(self, id):
         self.user_repository.delete_user_by_id(id)
 
     def _generate_pin(self):
-        return ''.join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
+        return "".join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
+
 
 user_service = UserService(user_repository)

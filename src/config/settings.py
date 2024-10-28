@@ -1,7 +1,6 @@
 import os
 from neomodel import config, db
 from dotenv import load_dotenv
-from neo4j import GraphDatabase
 from utils.logger import Logger
 from models.interest import Interest
 import redis
@@ -17,7 +16,7 @@ AUTH_API_URI = os.getenv("AUTH_API_URI")
 AUTH_API_REGISTER_PATH = os.getenv("AUTH_API_REGISTER_PATH")
 AUTH_API_LOGIN_PATH = os.getenv("AUTH_API_LOGIN_PATH")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FILE  = os.getenv("LOG_FILE", "user_ms.log")
+LOG_FILE = os.getenv("LOG_FILE", "user_ms.log")
 FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
 FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
 REDIS_HOST = os.getenv("REDIS_HOST")
@@ -43,6 +42,7 @@ INTERESTS = [
 ]
 logger = Logger(LOG_LEVEL, LOG_FILE)
 
+
 def init_database():
     try:
         config.DATABASE_URL = f"{DB_PROTOCOL}://{DB_USERNAME}:{DB_PASSWORD}@{DB_URI}"
@@ -53,7 +53,7 @@ def init_database():
         for interest in INTERESTS:
             i = Interest.nodes.get_or_none(name=interest)
             if i is None:
-                Interest(name = interest).save()
+                Interest(name=interest).save()
                 logger.debug(f"Interest {interest} created.")
             else:
                 logger.debug(f"Interest {interest} already exists.")
@@ -62,14 +62,23 @@ def init_database():
     except Exception as e:
         logger.error(f"Database connection error: {e}")
 
+
 def init_redis():
     try:
-        logger.info(f"Initializing Redis connection at {REDIS_HOST}:{REDIS_PORT} - username: {REDIS_USERNAME} - password: {REDIS_PASSWORD}")
-        conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, username=REDIS_USERNAME,password=REDIS_PASSWORD)
+        logger.info(
+            f"Initializing Redis connection at {REDIS_HOST}:{REDIS_PORT} - username: {REDIS_USERNAME} - password: {REDIS_PASSWORD}"
+        )
+        conn = redis.Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            username=REDIS_USERNAME,
+            password=REDIS_PASSWORD,
+        )
         conn.ping()
         logger.info("Redis connection initialized successfully.")
         return conn
     except Exception as e:
         logger.error(f"Redis initialization error: {e}")
+
 
 redis_conn = init_redis()

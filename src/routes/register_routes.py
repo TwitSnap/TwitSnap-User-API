@@ -6,12 +6,17 @@ from DTOs.register.user_register import UserRegister
 
 register_router = APIRouter()
 
-@register_router.post("/", response_model= UserProfile,response_model_exclude_none= True,status_code=status.HTTP_201_CREATED)
+
+@register_router.post(
+    "/",
+    response_model=UserProfile,
+    response_model_exclude_none=True,
+    status_code=status.HTTP_201_CREATED,
+)
 async def register(user_register_data: UserRegister):
     return await register_controller.register(user_register_data)
 
+
 @register_router.post("/google", status_code=status.HTTP_201_CREATED)
-async def register_with_google(token : GoogleRegister):
+async def register_with_google(token: GoogleRegister):
     return await register_controller.register_with_google(token)
-
-
