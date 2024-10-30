@@ -41,7 +41,7 @@ def configure_middleware(app: FastAPI):
         url = request.url
         logger.info(f"Request url: {url} | Method: {method} ")
         response = await call_next(request)
-        logger.info(f"Response status code: {response.status_code} | Response body: {response.info}")
+        logger.info(f"Response status code: {response.status_code}")
         return response
 
 
