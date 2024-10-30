@@ -6,17 +6,17 @@ from exceptions.exception_handler import ExceptionHandler
 from routes.routes import router
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from config.open_api_doc import configure_openapi
 
 
 def create_app():
     app = FastAPI(lifespan=lifespan)
     configure_middleware(app)
     configure_routes(app)
-
+    configure_openapi(app)
     @app.exception_handler(RequestValidationError)
     def _(request: Request, exc: Exception):
         return ExceptionHandler.handle_exception(exc, request)
-
     return app
 
 

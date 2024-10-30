@@ -56,14 +56,13 @@ class UserService:
         logger.debug(f"user is_banned status: {user.is_banned}")
         return AuthUserResponse(uid=user.uid, is_banned=user.is_banned)
 
-    async def get_user_by_id(self, id, my_uid=None):
+    async def get_user_by_id(self, id, my_uid):
         user = await self._get_user_by_id(id)
         if user.is_banned:
             logger.debug(f"User with id: {id} is banned")
             raise ResourceNotFoundException(detail=f"User with id: {id} not found")
 
-        if my_uid:
-            my_user = await self._get_user_by_id(my_uid)
+        my_user = await self._get_user_by_id(my_uid)
 
         user = (
             UserBuilder(user)
@@ -107,13 +106,14 @@ class UserService:
                 if attr == "interests":
                     continue
                 setattr(user, attr, value)
-        self.update_user_interests(user, user_data.interests)
+        if user_data.interests:
+            self.update_user_interests(user, user_data.interests)
 
         if photo:
             url = await self.firebase_service.upload_photo(photo, id)
             user.photo = url
         eddited_user = self.user_repository.save(user)
-        user = UserBuilder(eddited_user).with_public_info().with_private_info().build()
+        user = UserBuilder(eddited_user).with_public_info().with_private_info().with_interests().build()
         return UserProfile(**user)
 
     async def get_users_by_username(self, username: str, offset: int, limit: int):

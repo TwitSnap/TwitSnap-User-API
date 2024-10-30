@@ -1,6 +1,6 @@
 from typing import Optional, List
 from DTOs.register.verify_register_pin import VerifyRegisterPin
-from fastapi import APIRouter, Query, Request, status, Depends
+from fastapi import APIRouter, Query, Request, status, Depends, Header
 from DTOs.auth.aurh_user_response import AuthUserResponse
 from DTOs.user.follow_request import FollowRequest
 from DTOs.user.update_user_form import UpdateUserForm
@@ -28,7 +28,7 @@ async def get_user_auth_status_by_email(email: str):
     "/me",
     status_code=status.HTTP_200_OK,
     response_model=UserProfile,
-    response_model_exclude_none=True,
+    response_model_exclude_none=True
 )
 async def edit_my_user(
     request: Request, user_update_form: UpdateUserForm = Depends(UpdateUserForm)
