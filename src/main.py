@@ -14,9 +14,11 @@ def create_app():
     configure_middleware(app)
     configure_routes(app)
     configure_openapi(app)
+
     @app.exception_handler(RequestValidationError)
     def _(request: Request, exc: Exception):
         return ExceptionHandler.handle_exception(exc, request)
+
     return app
 
 

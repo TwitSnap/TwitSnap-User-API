@@ -1,5 +1,7 @@
 from models.user import User
 
+from src.config.settings import logger
+
 
 class UserBuilder:
     def __init__(self, user: User):
@@ -22,6 +24,10 @@ class UserBuilder:
         self.data["email"] = self.user.email
         self.data["verified"] = self.user.verified
 
+        return self
+
+    def with_uid(self):
+        self.data["uid"] = self.user.uid
         return self
 
     def with_is_banned(self):
@@ -82,8 +88,9 @@ class UserBuilder:
 
     def with_interests(self):
         self.data["interests"] = []
-        for interest in self.user.interests:
-            self.data["interests"].append(interest.name)
+        if self.user.interests is not None:
+            for interest in self.user.interests:
+                self.data["interests"].append(interest)
         return self
 
     def build(self):
