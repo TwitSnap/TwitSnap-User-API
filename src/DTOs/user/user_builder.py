@@ -1,7 +1,5 @@
 from models.user import User
 
-from src.config.settings import logger
-
 
 class UserBuilder:
     def __init__(self, user: User):

@@ -9,7 +9,7 @@ from exceptions.conflict_exception import ConflictException
 from fastapi import status
 from starlette.responses import JSONResponse
 
-from src.DTOs.user.user_builder import UserBuilder
+from DTOs.user.user_builder import UserBuilder
 
 
 class RegisterService:
