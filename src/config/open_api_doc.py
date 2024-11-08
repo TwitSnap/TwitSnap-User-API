@@ -1,5 +1,6 @@
 from fastapi.openapi.utils import get_openapi
 
+
 def configure_openapi(app):
     def custom_openapi():
         if app.openapi_schema:

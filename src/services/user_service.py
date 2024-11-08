@@ -25,24 +25,21 @@ class UserService:
         self.twitsnap_service = twitsnap_service
 
     async def create_user(self, register_request: dict):
-        # logger.debug(f"Attempting to create user with data: {register_request}")
-        user = User(
-            username=register_request["username"],
-            email=register_request["email"],
-            password=register_request["password"],
-            phone=register_request["phone"],
-            country=register_request["country"],
-        ).save()
-        self.update_user_interests(user, register_request["interests"])
+        logger.debug(f"Attempting to create user with data: {register_request}")
+        user = User(**register_request).save()
+        await self.update_user_interests(
+            user.uid, register_request.get("interests", [])
+        )
         logger.debug(f"User created with id: {user.uid}")
-        user = (
+        res = (
             UserBuilder(user)
             .with_public_info()
             .with_private_info()
             .with_interests()
+            .with_is_banned()
             .build()
         )
-        return UserProfile(**user)
+        return UserProfile(**res)
 
     async def get_user_by_email(self, email):
         logger.debug(f"Attempting to get user id by email: {email}")
@@ -75,17 +72,17 @@ class UserService:
     async def get_my_user(self, user_id):
         user = await self._get_user_by_id(user_id)
 
-        user = (
+        res = (
             UserBuilder(user)
             .with_public_info()
             .with_private_info()
             .with_interests()
             .build()
         )
-        logger.debug(f"Found user with id: {user_id} - {user}")
-        return UserProfile(**user)
+        logger.debug(f"Found user with id: {user_id} - {res}")
+        return UserProfile(**res)
 
-    async def _get_user_by_id(self, id):
+    async def _get_user_by_id(self, id) -> User:
         user = self.user_repository.find_user_by_id(id)
         if user is None:
             logger.debug(f"User not found with id: {id}")
@@ -107,13 +104,19 @@ class UserService:
                     continue
                 setattr(user, attr, value)
         if user_data.interests:
-            self.update_user_interests(user, user_data.interests)
+            await self.update_user_interests(user.uid, user_data.interests)
 
         if photo:
             url = await self.firebase_service.upload_photo(photo, id)
             user.photo = url
         eddited_user = self.user_repository.save(user)
-        user = UserBuilder(eddited_user).with_public_info().with_private_info().with_interests().build()
+        user = (
+            UserBuilder(eddited_user)
+            .with_public_info()
+            .with_private_info()
+            .with_interests()
+            .build()
+        )
         return UserProfile(**user)
 
     async def get_users_by_username(self, username: str, offset: int, limit: int):
@@ -302,17 +305,19 @@ class UserService:
             f"User with id: {my_user.uid} is followed by user with id: {user.uid}"
         )
 
-    def update_user_interests(self, user: User, interests: list[str]):
+    async def update_user_interests(self, uid: str, interests: list[str]):
         logger.debug(f"Attempting to update user interests: {interests}")
         if interests is None:
             return
+        user = await self._get_user_by_id(uid)
 
-        user.interests.disconnect_all()
+        for i in user.interests.all():
+            user.interests.disconnect(i)
+
         for i in interests:
             interest = Interest.nodes.get_or_none(name=i.lower())
             if interest:
                 user.interests.connect(interest)
-                logger.debug(f"Connected interest '{i}' to user with id: {user.uid}")
             else:
                 logger.warning(f"Interest '{i}' not found and could not be connected.")
 

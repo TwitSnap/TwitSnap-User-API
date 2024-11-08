@@ -17,11 +17,14 @@ class UserRepository:
 
     @db.transaction
     def find_user_by_email(self, email):
-        try:
-            user = User.nodes.get(email=email)
-            return user
-        except User.DoesNotExist:
-            return None
+        query = """
+        MATCH (u:User) 
+        WHERE u.email = $email AND u.provider IS NULL 
+        RETURN u
+        """
+        results, meta = db.cypher_query(query, {"email": email})
+
+        return results[0] if results else None
 
     @db.transaction
     def find_user_by_id(self, id) -> User:

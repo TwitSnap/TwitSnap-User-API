@@ -13,9 +13,10 @@ from models.interest import Interest
 class User(StructuredNode):
     uid = UniqueIdProperty()
     username = StringProperty(index=True)
-    email = StringProperty(unique_index=True)
+    email = StringProperty(index=True)
     country = StringProperty(default="")
     phone = StringProperty()
+    provider = StringProperty(default=None)
     description = StringProperty(default="")
     verified = BooleanProperty(default=False)
     photo = StringProperty(default=DEFAULT_PROFILE_PHOTO)
