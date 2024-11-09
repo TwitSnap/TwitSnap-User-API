@@ -1,7 +1,6 @@
 from models.user import User
 from neomodel import db
 
-from src.config.settings import logger
 
 
 class UserRepository:
