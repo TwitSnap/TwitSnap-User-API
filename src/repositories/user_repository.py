@@ -1,6 +1,8 @@
 from models.user import User
 from neomodel import db
 
+from src.config.settings import logger
+
 
 class UserRepository:
     def __init__(self, database=db):
@@ -23,8 +25,11 @@ class UserRepository:
         RETURN u
         """
         results, meta = db.cypher_query(query, {"email": email})
-
-        return results[0] if results else None
+        if results:
+            user_node = results[0][0]
+            user = User.inflate(user_node)
+            return user
+        return None
 
     @db.transaction
     def find_user_by_id(self, id) -> User:
