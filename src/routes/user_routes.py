@@ -8,6 +8,9 @@ from DTOs.user.user_profile import UserProfile
 from DTOs.user.user_profile_preview import UserProfilePreview
 from controllers.user_controller import user_controller
 
+from models.interest import Interest
+
+from DTOs.user.user_stats import UserStats
 
 user_router = APIRouter()
 
@@ -110,3 +113,9 @@ async def get_following(
     limit: int = Query(10, gt=0),
 ):
     return await user_controller.get_following(request, id, offset, limit)
+
+
+@user_router.get("/me/stats", response_model=UserStats)
+async def get_user_stats(request: Request, from_date: str = Query(..., description="date format YYYY-MM-DD")
+):
+    return await user_controller.get_user_stats(request, from_date)

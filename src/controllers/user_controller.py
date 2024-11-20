@@ -1,6 +1,6 @@
+from datetime import datetime
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from DTOs.backoffice.ban_user_request import BanUserRequest
 from DTOs.register.user_register import UserRegister
 from DTOs.user.edit_user import EditUser
 from DTOs.user.update_user_form import UpdateUserForm
@@ -134,6 +134,14 @@ class UserController:
                 return await self.user_service.get_my_following(my_uid, offset, limit)
             logger.debug(f"Getting following of user with id: {id}, my id: {my_uid}")
             return await self.user_service.get_following(my_uid, id, offset, limit)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+
+    async def get_user_stats(self, req:Request, from_date: str):
+        try:
+            uid = self.get_current_user(req)
+            from_date = datetime.strptime(from_date, "%Y-%m-%d")
+            return await self.user_service.get_user_stats(uid, from_date)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 

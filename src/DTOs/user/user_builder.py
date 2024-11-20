@@ -42,6 +42,10 @@ class UserBuilder:
         self.data["photo"] = self.user.photo
         return self
 
+    def with_created_at(self):
+        self.data["created_at"] = self.user.created_at
+        return self
+
     def with_followers(self, followers):
         self.data["followers"] = []
 

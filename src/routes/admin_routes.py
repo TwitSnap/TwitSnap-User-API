@@ -1,7 +1,5 @@
 from fastapi import APIRouter, status, Query
-from DTOs.backoffice.ban_user_request import BanUserRequest
 from controllers.user_controller import user_controller
-
 from DTOs.user.user_profile import UserProfile
 
 admin_router = APIRouter()

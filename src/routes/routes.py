@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from routes.register_routes import register_router
 from routes.user_routes import user_router
 from routes.admin_routes import admin_router
+
 from routes.resource_routes import resource_router
 
 router = APIRouter(prefix="/api/v1")

@@ -1,8 +1,9 @@
 import random
 import string
+from datetime import datetime
+
 from fastapi import UploadFile
 from DTOs.auth.aurh_user_response import AuthUserResponse
-from DTOs.backoffice.ban_user_request import BanUserRequest
 from DTOs.register.generated_pin_response import GeneratedPinResponse
 from DTOs.user.edit_user import EditUser
 from DTOs.user.user_profile import UserProfile
@@ -16,6 +17,8 @@ from exceptions.resource_not_found_exception import ResourceNotFoundException
 from config.settings import logger, redis_conn, REGISTER_PIN_TTL, REGISTER_PIN_LENGHT
 from external.firebase_service import firebase_service
 from external.twitsnap_service import twitsnap_service
+
+from DTOs.user.user_stats import UserStats
 
 
 class UserService:
@@ -324,8 +327,17 @@ class UserService:
             else:
                 logger.warning(f"Interest '{i}' not found and could not be connected.")
 
-    def delete_user_by_id(self, id):
-        self.user_repository.delete_user_by_id(id)
+    def delete_user_by_id(self, uid):
+        self.user_repository.delete_user_by_id(uid)
+
+    async def get_user_stats(self, uid: str, from_date: datetime):
+
+        followers_gained, following_gained = await self.user_repository.get_user_stats(
+            uid, from_date
+        )
+        return UserStats(
+            followers_gained=followers_gained, following_gained=following_gained
+        )
 
     def _generate_pin(self):
         return "".join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))

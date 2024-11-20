@@ -1,6 +1,7 @@
 from models.user import User
 from neomodel import db
 
+from config.settings import logger
 
 
 class UserRepository:
@@ -69,6 +70,36 @@ class UserRepository:
         parameters = {"id": id, "offset": offset, "limit": limit}
         results, _ = db.cypher_query(query, parameters)
         return [User.inflate(record[0]) for record in results]
+
+    @db.transaction
+    async def get_user_stats(self, uid: str, from_date):
+        from_date_iso = from_date.isoformat()
+
+        following_query = """
+        MATCH (u:User)-[f:FOLLOW]->(o:User)
+        WHERE u.uid = $uid AND f.created_at >= datetime($from_date).epochSeconds / 1000
+        RETURN o
+        """
+
+        followers_query = """
+        MATCH (o:User)-[f:FOLLOW]->(u:User)
+        WHERE u.uid = $uid AND f.created_at >= datetime($from_date).epochSeconds / 1000
+        RETURN o
+        """
+
+        followers_result, _ = db.cypher_query(
+            followers_query, {"uid": uid, "from_date": from_date_iso}
+        )
+        logger.debug(f"Followers result: {followers_result}")
+        following_result, _ = db.cypher_query(
+            following_query, {"uid": uid, "from_date": from_date_iso}
+        )
+        logger.debug(f"Following result: {following_result}")
+
+        followers_gained = len([User.inflate(record[0]) for record in followers_result])
+        following_gained = len([User.inflate(record[0]) for record in following_result])
+
+        return (followers_gained, following_gained)
 
 
 user_repository = UserRepository()

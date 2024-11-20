@@ -34,4 +34,5 @@ class GoogleService:
         )
         return response.json()
 
+
 google_service = GoogleService()
