@@ -83,9 +83,9 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def ban_user(self, user_id: str, req: BanUserRequest):
+    async def ban_or_unban_user(self, user_id: str):
         try:
-            return await self.user_service.ban_user(user_id, req)
+            return await self.user_service.ban_or_unban_user(user_id)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 

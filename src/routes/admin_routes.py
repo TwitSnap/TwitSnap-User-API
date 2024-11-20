@@ -7,9 +7,9 @@ from DTOs.user.user_profile import UserProfile
 admin_router = APIRouter()
 
 
-@admin_router.patch("/users/{id}/ban", status_code=status.HTTP_204_NO_CONTENT)
-async def ban_user(id: str, req: BanUserRequest):
-    return await user_controller.ban_user(id, req)
+@admin_router.post("/users/{id}/ban", status_code=status.HTTP_204_NO_CONTENT)
+async def ban_or_unban_user(id: str):
+    return await user_controller.ban_or_unban_user(id)
 
 
 @admin_router.get(

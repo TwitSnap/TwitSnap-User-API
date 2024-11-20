@@ -155,9 +155,12 @@ class UserService:
 
         return user
 
-    async def ban_user(self, user_id, req: BanUserRequest):
+    async def ban_or_unban_user(self, user_id):
         user = await self._get_user_by_id(user_id)
-        user.is_banned = req.is_banned
+        if user.is_banned:
+            user.is_banned = False
+        else:
+            user.is_banned = True
         self.user_repository.save(user)
         return
 
