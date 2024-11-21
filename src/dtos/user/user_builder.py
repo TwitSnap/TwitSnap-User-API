@@ -92,7 +92,7 @@ class UserBuilder:
         self.data["interests"] = []
         if self.user.interests is not None:
             for interest in self.user.interests:
-                self.data["interests"].append(interest)
+                self.data["interests"].append(interest.name)
         return self
 
     def build(self):
