@@ -1,5 +1,5 @@
-from DTOs.register.google_register import GoogleRegister
-from DTOs.register.user_register import UserRegister
+from dtos.register.google_register import GoogleRegister
+from dtos.register.user_register import UserRegister
 from services.register_service import register_service
 from exceptions.exception_handler import ExceptionHandler
 

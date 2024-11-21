@@ -1,9 +1,9 @@
 from datetime import datetime
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
-from DTOs.register.user_register import UserRegister
-from DTOs.user.edit_user import EditUser
-from DTOs.user.update_user_form import UpdateUserForm
+from dtos.register.user_register import UserRegister
+from dtos.user.edit_user import EditUser
+from dtos.user.update_user_form import UpdateUserForm
 from exceptions.bad_request_exception import BadRequestException
 from services.user_service import user_service
 from exceptions.exception_handler import ExceptionHandler
@@ -137,11 +137,27 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def get_user_stats(self, req:Request, from_date: str):
+    async def get_user_stats(self, req: Request, from_date: str):
         try:
             uid = self.get_current_user(req)
             from_date = datetime.strptime(from_date, "%Y-%m-%d")
             return await self.user_service.get_user_stats(uid, from_date)
+        except Exception as e:
+            return ExceptionHandler.handle_exception(e)
+
+    async def get_user_metrics(self, metric_type: str):
+        try:
+            logger.debug(f"Getting metrics for type: {metric_type}")
+            if metric_type not in [
+                "registration",
+                "banned",
+                "country_distribution",
+                None,
+            ]:
+                raise BadRequestException(
+                    detail="Invalid metric type, valid values are: registration, banned, country_distribution"
+                )
+            return await self.user_service.get_metrics(metric_type)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 

@@ -1,15 +1,15 @@
-from DTOs.register.google_register import GoogleRegister
+from dtos.register.google_register import GoogleRegister
 from config.settings import logger
 from exceptions.user_registration_exception import UserRegistrationException
 from services.user_service import user_service
 from external.twitsnap_service import twitsnap_service
 from external.google_service import google_service
-from DTOs.register.user_register import UserRegister
+from dtos.register.user_register import UserRegister
 from exceptions.conflict_exception import ConflictException
 from fastapi import status
 from starlette.responses import JSONResponse
 
-from DTOs.user.user_builder import UserBuilder
+from dtos.user.user_builder import UserBuilder
 
 
 class RegisterService:
@@ -33,6 +33,7 @@ class RegisterService:
             await self.twitsnap_service.send_user_credentials_to_auth(
                 user.uid, register_data.password
             )
+
             await self.service.generate_register_pin(user.uid)
 
         except Exception as e:
@@ -54,6 +55,7 @@ class RegisterService:
             "username": name,
             "photo": photo,
             "email": email,
+            "country": None,
             "provider": "google",
             "verified": True,
         }

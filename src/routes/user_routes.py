@@ -1,16 +1,16 @@
 from typing import Optional, List
-from DTOs.register.verify_register_pin import VerifyRegisterPin
+from dtos.register.verify_register_pin import VerifyRegisterPin
 from fastapi import APIRouter, Query, Request, status, Depends, Header
-from DTOs.auth.aurh_user_response import AuthUserResponse
-from DTOs.user.follow_request import FollowRequest
-from DTOs.user.update_user_form import UpdateUserForm
-from DTOs.user.user_profile import UserProfile
-from DTOs.user.user_profile_preview import UserProfilePreview
+from dtos.auth.aurh_user_response import AuthUserResponse
+from dtos.user.follow_request import FollowRequest
+from dtos.user.update_user_form import UpdateUserForm
+from dtos.user.user_profile import UserProfile
+from dtos.user.user_profile_preview import UserProfilePreview
 from controllers.user_controller import user_controller
 
 from models.interest import Interest
 
-from DTOs.user.user_stats import UserStats
+from dtos.user.user_stats import UserStats
 
 user_router = APIRouter()
 
@@ -31,7 +31,7 @@ async def get_user_auth_status_by_email(email: str):
     "/me",
     status_code=status.HTTP_200_OK,
     response_model=UserProfile,
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
 )
 async def edit_my_user(
     request: Request, user_update_form: UpdateUserForm = Depends(UpdateUserForm)
@@ -55,7 +55,7 @@ async def refresh_register_pin(id: str):
     "/{id}",
     status_code=status.HTTP_200_OK,
     response_model=UserProfile,
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
 )
 async def get_user_by_id(id: str, request: Request):
     return await user_controller.get_user_by_id(request, id)
@@ -64,7 +64,7 @@ async def get_user_by_id(id: str, request: Request):
 @user_router.get(
     "/",
     response_model=List[UserProfilePreview],
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
     status_code=status.HTTP_200_OK,
 )
 async def get_users(
@@ -89,7 +89,7 @@ async def unfollow_user(request: Request, follow_request: FollowRequest):
     "/{id}/followers",
     status_code=status.HTTP_200_OK,
     response_model=UserProfile,
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
 )
 async def get_followers(
     id: str,
@@ -104,7 +104,7 @@ async def get_followers(
     "/{id}/following",
     status_code=status.HTTP_200_OK,
     response_model=UserProfile,
-    response_model_exclude_none=True,
+    response_model_exclude_unset=True,
 )
 async def get_following(
     id: str,
@@ -116,6 +116,7 @@ async def get_following(
 
 
 @user_router.get("/me/stats", response_model=UserStats)
-async def get_user_stats(request: Request, from_date: str = Query(..., description="date format YYYY-MM-DD")
+async def get_user_stats(
+    request: Request, from_date: str = Query(..., description="date format YYYY-MM-DD")
 ):
     return await user_controller.get_user_stats(request, from_date)

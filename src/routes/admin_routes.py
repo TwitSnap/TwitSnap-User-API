@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status, Query
 from controllers.user_controller import user_controller
-from DTOs.user.user_profile import UserProfile
+from dtos.user.user_profile import UserProfile
+from typing import Optional
 
 admin_router = APIRouter()
 
@@ -8,6 +9,16 @@ admin_router = APIRouter()
 @admin_router.post("/users/{id}/ban", status_code=status.HTTP_204_NO_CONTENT)
 async def ban_or_unban_user(id: str):
     return await user_controller.ban_or_unban_user(id)
+
+
+@admin_router.get("/users/metrics", status_code=status.HTTP_200_OK)
+async def get_metrics(
+    metric_type: Optional[str] = Query(
+        None,
+        description="Type of metric: registration, banned, country_distribution, if not provided, all metrics will be returned",
+    )
+):
+    return await user_controller.get_user_metrics(metric_type)
 
 
 @admin_router.get(

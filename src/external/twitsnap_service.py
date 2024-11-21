@@ -1,4 +1,4 @@
-from DTOs.notification.register_pin import RegisterPin
+from dtos.notification.register_pin import RegisterPin
 from utils.requester import requester
 from config.settings import (
     AUTH_API_URI,
@@ -8,7 +8,7 @@ from config.settings import (
     logger,
     NOTIFICATION_SENDER,
 )
-from DTOs.auth.auth_user_register import AuthUserRegister
+from dtos.auth.auth_user_register import AuthUserRegister
 
 
 class TwitsnapService:

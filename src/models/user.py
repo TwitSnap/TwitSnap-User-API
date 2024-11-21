@@ -17,7 +17,7 @@ class User(StructuredNode):
     uid = UniqueIdProperty()
     username = StringProperty(index=True)
     email = StringProperty(index=True)
-    country = StringProperty(default="")
+    country = StringProperty(default=None)
     phone = StringProperty()
     provider = StringProperty(default=None)
     description = StringProperty(default="")

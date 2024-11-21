@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
-from DTOs.register.google_register import GoogleRegister
-from DTOs.user.user_profile import UserProfile
+from dtos.register.google_register import GoogleRegister
+from dtos.user.user_profile import UserProfile
 from controllers.register_controller import register_controller
-from DTOs.register.user_register import UserRegister
+from dtos.register.user_register import UserRegister
 
 register_router = APIRouter()
 

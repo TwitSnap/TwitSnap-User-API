@@ -101,5 +101,47 @@ class UserRepository:
 
         return (followers_gained, following_gained)
 
+    async def get_metrics(self, metric_type: str):
+        if metric_type == "register":
+            return await self.get_register_metrics()
+        elif metric_type == "banned":
+            return await self.get_banned_metrics()
+        elif metric_type == "country":
+            return await self.get_country_metrics()
+
+    async def get_register_metrics(self):
+        query = """
+        MATCH (u:User)
+        WITH 
+          COUNT(CASE WHEN u.provider IS NULL THEN u END) AS emailTotal,
+          COUNT(CASE WHEN u.provider = 'google' THEN u END) AS googleTotal
+        RETURN 
+          emailTotal, 
+          googleTotal
+        """
+        results, meta = db.cypher_query(query)
+        return results[0]
+
+    async def get_banned_metrics(self):
+        query = """
+        MATCH (u:User)
+        WHERE u.is_banned = true
+        RETURN u
+        """
+        results, meta = db.cypher_query(query)
+        return len(results)
+
+    async def get_country_metrics(self):
+        query = """
+        MATCH (u:User)
+        WITH u.country AS country, COUNT(u) AS total
+        RETURN country, total
+        ORDER BY total DESC
+        """
+        results, meta = db.cypher_query(query)
+
+        distribution = {row[0]: row[1] for row in results}
+        return distribution
+
 
 user_repository = UserRepository()

@@ -3,12 +3,12 @@ import string
 from datetime import datetime
 
 from fastapi import UploadFile
-from DTOs.auth.aurh_user_response import AuthUserResponse
-from DTOs.register.generated_pin_response import GeneratedPinResponse
-from DTOs.user.edit_user import EditUser
-from DTOs.user.user_profile import UserProfile
-from DTOs.user.user_profile_preview import UserProfilePreview
-from DTOs.user.user_builder import UserBuilder
+from dtos.auth.aurh_user_response import AuthUserResponse
+from dtos.register.generated_pin_response import GeneratedPinResponse
+from dtos.user.edit_user import EditUser
+from dtos.user.user_profile import UserProfile
+from dtos.user.user_profile_preview import UserProfilePreview
+from dtos.user.user_builder import UserBuilder
 from exceptions.conflict_exception import ConflictException
 from models.user import User
 from models.interest import Interest
@@ -18,7 +18,7 @@ from config.settings import logger, redis_conn, REGISTER_PIN_TTL, REGISTER_PIN_L
 from external.firebase_service import firebase_service
 from external.twitsnap_service import twitsnap_service
 
-from DTOs.user.user_stats import UserStats
+from dtos.user.user_stats import UserStats
 
 
 class UserService:
@@ -338,6 +338,47 @@ class UserService:
         return UserStats(
             followers_gained=followers_gained, following_gained=following_gained
         )
+
+    async def get_metrics(self, metric_type: str):
+
+        if not metric_type:
+            return await self.get_all_metrics()
+
+        if metric_type == "registration":
+            return await self.get_register_metrics()
+
+        if metric_type == "banned":
+            return await self.get_banned_metrics()
+
+        if metric_type == "country_distribution":
+            return await self.get_country_metrics()
+
+    async def get_register_metrics(self):
+        email, google = await self.user_repository.get_register_metrics()
+        return {
+            "registration": {
+                "total": email + google,
+                "distribution": {
+                    "email": email,
+                    "fedetatedIdentity": {"google": google},
+                },
+            }
+        }
+
+    async def get_banned_metrics(self):
+        banned_users = await self.user_repository.get_banned_metrics()
+        return {"bannedUsers": {"total": banned_users}}
+
+    async def get_country_metrics(self):
+        country_distribution = await self.user_repository.get_country_metrics()
+        return {"countryDistribution": country_distribution}
+
+    async def get_all_metrics(self):
+        return {
+            **await self.get_register_metrics(),
+            **await self.get_banned_metrics(),
+            **await self.get_country_metrics(),
+        }
 
     def _generate_pin(self):
         return "".join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))

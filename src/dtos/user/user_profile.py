@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from DTOs.user.user_profile_preview import UserProfilePreview
+from dtos.user.user_profile_preview import UserProfilePreview
 
 
 class UserProfile(BaseModel):
