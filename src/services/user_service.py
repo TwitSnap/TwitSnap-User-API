@@ -20,6 +20,8 @@ from external.twitsnap_service import twitsnap_service
 
 from dtos.user.user_stats import UserStats
 
+from dtos.user.admin_get_all_users import GetUsers
+
 
 class UserService:
     def __init__(self, user_repository):
@@ -179,9 +181,9 @@ class UserService:
         )
 
     async def get_all_users(self, offset: int, limit: int):
-        users = self.user_repository.get_all_users(offset, limit)
-
-        return [
+        users, total_users = self.user_repository.get_all_users(offset, limit)
+        logger.debug(f"total users: {total_users}")
+        users = [
             UserProfile(
                 **UserBuilder(user)
                 .with_public_info()
@@ -191,6 +193,7 @@ class UserService:
             )
             for user in users
         ]
+        return GetUsers(total_users=total_users, users=users)
 
     async def generate_register_pin(self, user_id):
         user = await self._get_user_by_id(user_id)

@@ -55,18 +55,20 @@ class UserRepository:
         query = "MATCH (u:User) RETURN u SKIP $offset LIMIT $limit"
         parameters = {"offset": offset, "limit": limit}
         results, _ = db.cypher_query(query, parameters)
-        return [User.inflate(record[0]) for record in results]
+
+        total_count = db.cypher_query("MATCH (u:User) RETURN count(u) AS total")
+        return [User.inflate(record[0]) for record in results], total_count[0][0][0]
 
     @db.transaction
     def get_following(self, id: str, offset: int, limit: int):
-        query = "MATCH (u:User)-[:FOLLOW]->(f:User) WHERE u.uid = $id RETURN f SKIP $offset LIMIT $limit"
+        query = "MATCH (u:User)-[:FOLLOW]->(f:User) WHERE u.uid = $id and f.is_banned = false RETURN f SKIP $offset LIMIT $limit"
         parameters = {"id": id, "offset": offset, "limit": limit}
         results, _ = db.cypher_query(query, parameters)
         return [User.inflate(record[0]) for record in results]
 
     @db.transaction
     def get_followers(self, id: str, offset: int, limit: int):
-        query = "MATCH (u:User)<-[:FOLLOW]-(f:User) WHERE u.uid = $id RETURN f SKIP $offset LIMIT $limit"
+        query = "MATCH (u:User)<-[:FOLLOW]-(f:User) WHERE u.uid = $id and f.is_banned = false RETURN f SKIP $offset LIMIT $limit"
         parameters = {"id": id, "offset": offset, "limit": limit}
         results, _ = db.cypher_query(query, parameters)
         return [User.inflate(record[0]) for record in results]

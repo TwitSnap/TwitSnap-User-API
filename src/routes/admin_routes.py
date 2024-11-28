@@ -3,6 +3,8 @@ from controllers.user_controller import user_controller
 from dtos.user.user_profile import UserProfile
 from typing import Optional
 
+from dtos.user.admin_get_all_users import GetUsers
+
 admin_router = APIRouter()
 
 
@@ -34,7 +36,7 @@ async def get_user_by_id_for_admin(id: str):
 @admin_router.get(
     "/users",
     status_code=status.HTTP_200_OK,
-    response_model=list[UserProfile],
+    response_model=GetUsers,
     response_model_exclude_none=True,
 )
 async def get_all_users(offset: int = Query(0, ge=0), limit: int = Query(10, gt=0)):
