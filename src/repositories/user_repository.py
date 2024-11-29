@@ -51,13 +51,46 @@ class UserRepository:
         return [User.inflate(record[0]) for record in results]
 
     @db.transaction
-    def get_all_users(self, offset: int, limit: int):
-        query = "MATCH (u:User) RETURN u SKIP $offset LIMIT $limit"
-        parameters = {"offset": offset, "limit": limit}
-        results, _ = db.cypher_query(query, parameters)
+    def get_all_users(self, offset: int, limit: int, is_banned: bool = None):
+            if is_banned is True:
+                query = """
+                    MATCH (u:User)
+                    WHERE u.is_banned = true
+                    RETURN u SKIP $offset LIMIT $limit
+                """
+                count_query = """
+                    MATCH (u:User)
+                    WHERE u.is_banned = true
+                    RETURN count(u) AS total
+                """
+            elif is_banned is False:
+                query = """
+                    MATCH (u:User)
+                    WHERE NOT u.is_banned
+                    RETURN u SKIP $offset LIMIT $limit
+                """
+                count_query = """
+                    MATCH (u:User)
+                    WHERE NOT u.is_banned
+                    RETURN count(u) AS total
+                """
+            else:
+                query = """
+                    MATCH (u:User)
+                    RETURN u SKIP $offset LIMIT $limit
+                """
+                count_query = """
+                    MATCH (u:User)
+                    RETURN count(u) AS total
+                """
 
-        total_count = db.cypher_query("MATCH (u:User) RETURN count(u) AS total")
-        return [User.inflate(record[0]) for record in results], total_count[0][0][0]
+            parameters = {"offset": offset, "limit": limit}
+            results, _ = db.cypher_query(query, parameters)
+            total_count, _ = db.cypher_query(count_query)
+
+            users = [User.inflate(record[0]) for record in results]
+            total = total_count[0][0]
+            return users, total
 
     @db.transaction
     def get_following(self, id: str, offset: int, limit: int):

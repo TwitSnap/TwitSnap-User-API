@@ -39,5 +39,5 @@ async def get_user_by_id_for_admin(id: str):
     response_model=GetUsers,
     response_model_exclude_none=True,
 )
-async def get_all_users(offset: int = Query(0, ge=0), limit: int = Query(10, gt=0)):
-    return await user_controller.get_all_users(offset, limit)
+async def get_all_users(offset: int = Query(0, ge=0), limit: int = Query(10, gt=0), is_banned: Optional[bool] = None):
+    return await user_controller.get_all_users(offset, limit, is_banned)

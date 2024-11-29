@@ -95,9 +95,9 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def get_all_users(self, offset: int, limit: int):
+    async def get_all_users(self, offset: int, limit: int, is_banned: bool = None):
         try:
-            return await self.user_service.get_all_users(offset, limit)
+            return await self.user_service.get_all_users(offset, limit, is_banned)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 

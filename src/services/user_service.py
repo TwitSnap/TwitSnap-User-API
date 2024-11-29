@@ -180,14 +180,15 @@ class UserService:
             .build()
         )
 
-    async def get_all_users(self, offset: int, limit: int):
-        users, total_users = self.user_repository.get_all_users(offset, limit)
+    async def get_all_users(self, offset: int, limit: int, is_banned: bool = None):
+        users, total_users = self.user_repository.get_all_users(offset, limit, is_banned)
         logger.debug(f"total users: {total_users}")
         users = [
             UserProfile(
                 **UserBuilder(user)
                 .with_public_info()
                 .with_private_info()
+                .with_interests()
                 .with_is_banned()
                 .build()
             )
