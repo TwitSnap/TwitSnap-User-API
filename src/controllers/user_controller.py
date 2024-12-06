@@ -9,6 +9,8 @@ from services.user_service import user_service
 from exceptions.exception_handler import ExceptionHandler
 from config.settings import logger
 
+from exceptions.conflict_exception import ConflictException
+
 
 class UserController:
     def __init__(self, user_service):
@@ -41,6 +43,14 @@ class UserController:
     async def edit_user_by_id(self, request: Request, update_form: UpdateUserForm):
         try:
             my_uid: str | None = self.get_current_user(request)
+
+            if update_form.username:
+                user = await self.user_service.get_users_by_username(update_form.username)
+                if len(user) > 0:
+                    raise ConflictException(
+                        detail=f"The username {update_form.username} is already taken."
+                    )
+
             new_user_data = EditUser(
                 username=update_form.username,
                 phone=update_form.phone,

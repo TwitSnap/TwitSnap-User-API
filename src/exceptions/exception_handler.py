@@ -17,6 +17,7 @@ class ExceptionHandler:
                 status_code=status.HTTP_404_NOT_FOUND, content={"message": exc.detail}
             )
         elif isinstance(exc, ConflictException):
+            logger.debug(f"Conflict error: {exc}")
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT, content={"message": exc.detail}
             )

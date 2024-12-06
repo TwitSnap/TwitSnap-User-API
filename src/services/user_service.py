@@ -128,7 +128,7 @@ class UserService:
         )
         return UserProfile(**user)
 
-    async def get_users_by_username(self, username: str, offset: int, limit: int):
+    async def get_users_by_username(self, username: str, offset: int = 0, limit: int = 1):
         users = self.user_repository.get_users_by_username(username, offset, limit)
         res = [
             UserProfilePreview(uid=user.uid, username=user.username, photo=user.photo)

@@ -19,11 +19,13 @@ class RegisterService:
         self.google_service = google_service
 
     async def register(self, register_data: UserRegister):
+        user = await self.service.get_users_by_username(register_data.username)
+        if len(user) > 0:
+            raise ConflictException(
+                f"The username {register_data.username} is already taken."
+            )
 
         if await self.service.exists_user_by_email(register_data.email):
-            logger.debug(
-                f"The email address {register_data.email} is already registered."
-            )
             raise ConflictException(
                 f"The email address {register_data.email} is already registered."
             )
