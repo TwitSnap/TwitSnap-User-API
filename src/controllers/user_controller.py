@@ -47,6 +47,7 @@ class UserController:
                 country=update_form.country,
                 description=update_form.description,
                 interests=update_form.interests,
+                device_token=update_form.device_token,
             )
             if update_form.photo and not update_form.photo.filename.endswith(
                 (".jpg", ".jpeg", ".png")

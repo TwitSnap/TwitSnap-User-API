@@ -82,6 +82,7 @@ class UserService:
             .with_public_info()
             .with_private_info()
             .with_interests()
+            .with_device_token()
             .build()
         )
         logger.debug(f"Found user with id: {user_id} - {res}")
@@ -105,11 +106,14 @@ class UserService:
 
         for attr, value in user_data.model_dump().items():
             if value is not None:
-                if attr == "interests":
+                if attr == "interests" or attr == "device_token":
                     continue
                 setattr(user, attr, value)
         if user_data.interests:
             await self.update_user_interests(user.uid, user_data.interests)
+        if user_data.device_token not in user.device_token:
+            user.device_token.append(user_data.device_token)
+            user.save()
 
         if photo:
             url = await self.firebase_service.upload_photo(photo, id)
@@ -177,6 +181,7 @@ class UserService:
             .with_private_info()
             .with_is_banned()
             .with_interests()
+            .with_device_token()
             .build()
         )
 
@@ -190,6 +195,7 @@ class UserService:
                 .with_private_info()
                 .with_interests()
                 .with_is_banned()
+                .with_device_token()
                 .build()
             )
             for user in users

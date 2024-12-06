@@ -5,7 +5,7 @@ from neomodel import (
     UniqueIdProperty,
     RelationshipTo,
     BooleanProperty,
-    DateTimeProperty,
+    DateTimeProperty, ArrayProperty,
 )
 from config.settings import DEFAULT_PROFILE_PHOTO
 from models.interest import Interest
@@ -28,3 +28,5 @@ class User(StructuredNode):
     following = RelationshipTo("User", "FOLLOW", model=FollowRelationship)
     interests = RelationshipTo(Interest, "HAS_INTEREST")
     created_at = DateTimeProperty(default_now=True)
+    device_token = ArrayProperty(StringProperty(), default=[])
+

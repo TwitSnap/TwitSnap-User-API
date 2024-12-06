@@ -19,5 +19,6 @@ class UserProfile(BaseModel):
     verified: Optional[bool] = None
     is_followed_by_me: Optional[bool] = None
     is_banned: Optional[bool] = None
+    device_token: Optional[list[str]] = None
     followers: Optional[list[UserProfilePreview]] = None
     following: Optional[list[UserProfilePreview]] = None

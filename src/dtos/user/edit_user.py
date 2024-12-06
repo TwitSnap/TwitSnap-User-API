@@ -11,6 +11,7 @@ class EditUser(BaseModel):
     country: Optional[str] = None
     description: Optional[str] = None
     interests: Optional[list[str]] = None
+    device_token: Optional[str] = None
 
     @field_validator("country")
     def validate_country(cls, country):

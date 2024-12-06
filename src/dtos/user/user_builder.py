@@ -46,6 +46,10 @@ class UserBuilder:
         self.data["created_at"] = self.user.created_at
         return self
 
+    def with_device_token(self):
+        self.data["device_token"] = self.user.device_token
+        return self
+
     def with_followers(self, followers):
         self.data["followers"] = []
 
