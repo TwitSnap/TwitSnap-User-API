@@ -108,9 +108,10 @@ class UserRepository:
 
     @db.transaction
     async def get_user_by_username(self, username: str):
+        username = username.lower()
         query = """
         MATCH (u:User)
-        WHERE u.username = $username
+        WHERE toLower(u.username) = $username
         RETURN u
         """
         results, _ = db.cypher_query(query, {"username": username})
