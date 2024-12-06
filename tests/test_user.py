@@ -105,7 +105,7 @@ def test_get_following():
     print(response.json())
     assert response.json()["following"][0]["username"] == "testuser2"
 
-def tets_get_followers():
+def test_get_followers():
     user1 = create_user(username="testuser1", email="Test1")
     user2 = create_user(username="testuser2", email="Test2")
     user1.following.connect(user2)
@@ -114,7 +114,10 @@ def tets_get_followers():
     assert response.status_code == 200
     assert response.json()["followers"][0]["username"] == "testuser1"
 
-
+def test_get_user_by_username():
+    user = create_user(username = "testuser")
+    user_from_db = user_repository.get_user_by_username(user.username)
+    assert user_from_db.username == user.username
 # utils
 def register_test_user(username="testuser", email="testuser@example.com", phone="1234567890", password="stringst"):
     data = {

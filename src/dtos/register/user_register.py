@@ -31,3 +31,11 @@ class UserRegister(BaseModel):
                 )
 
         return interests
+
+    @field_validator("username")
+    def no_spaces_in_username(cls, username):
+        if username is None:
+            return username
+        if " " in username:
+            raise ValueError("Username cannot contain spaces.")
+        return username

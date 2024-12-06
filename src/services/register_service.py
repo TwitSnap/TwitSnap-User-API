@@ -1,3 +1,5 @@
+import random
+
 from dtos.register.google_register import GoogleRegister
 from config.settings import logger
 from exceptions.user_registration_exception import UserRegistrationException
@@ -19,8 +21,8 @@ class RegisterService:
         self.google_service = google_service
 
     async def register(self, register_data: UserRegister):
-        user = await self.service.get_users_by_username(register_data.username)
-        if len(user) > 0:
+        user = await self.service.user_repository.get_user_by_username(register_data.username)
+        if user:
             raise ConflictException(
                 f"The username {register_data.username} is already taken."
             )
@@ -52,15 +54,17 @@ class RegisterService:
         email = provider_info["email"]
         name = provider_info["displayName"]
         photo = provider_info["photoUrl"]
+        username = await self.generate_username_from_name(name)
         google_register = {
             "uid": id,
-            "username": name,
+            "username": username,
             "photo": photo,
             "email": email,
             "country": None,
             "provider": "google",
             "verified": True,
         }
+
         logger.debug(f"attempting to find user with id: {id}")
         user = self.service.user_repository.find_user_by_id(id)
         logger.debug(f"user: {user}")
@@ -78,5 +82,18 @@ class RegisterService:
 
         return JSONResponse(status_code=status.HTTP_201_CREATED, content=res)
 
+
+    async def generate_username_from_name(self, name: str):
+        username = name.replace(" ", "_").lower()
+        user = await self.service.user_repository.get_user_by_username(username)
+        if user is None:
+            return username
+
+        while True:
+            username = f"{username}_{random.randint(1, 1000)}"
+            user = await self.service.user_repository.get_user_by_username(username)
+            if user is None:
+                return username
+            return username
 
 register_service = RegisterService()

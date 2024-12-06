@@ -107,6 +107,20 @@ class UserRepository:
         return [User.inflate(record[0]) for record in results]
 
     @db.transaction
+    async def get_user_by_username(self, username: str):
+        query = """
+        MATCH (u:User)
+        WHERE u.username = $username
+        RETURN u
+        """
+        results, _ = db.cypher_query(query, {"username": username})
+        if results:
+            user_node = results[0][0]
+            user = User.inflate(user_node)
+            return user
+        return None
+
+    @db.transaction
     async def get_user_stats(self, uid: str, from_date):
         from_date_iso = from_date.isoformat()
 
