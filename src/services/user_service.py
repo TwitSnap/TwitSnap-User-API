@@ -202,7 +202,7 @@ class UserService:
         ]
         return GetUsers(total_users=total_users, users=users)
 
-    async def generate_register_pin(self, user_id):
+    async def generate_register_pin(self, user_id, pin):
         user = await self._get_user_by_id(user_id)
 
         if user.verified:
@@ -211,7 +211,6 @@ class UserService:
                 detail=f"User with id: {user_id} is already verified"
             )
 
-        pin = self._generate_pin()
         redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
         await self.twitsnap_service.send_register_pin_to_notification(
             user.email, user.username, pin
@@ -392,7 +391,7 @@ class UserService:
             **await self.get_country_metrics(),
         }
 
-    def _generate_pin(self):
+    def generate_pin(self):
         return "".join(random.choices(string.digits, k=REGISTER_PIN_LENGHT))
 
 

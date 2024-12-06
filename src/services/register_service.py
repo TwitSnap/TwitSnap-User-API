@@ -37,8 +37,8 @@ class RegisterService:
             await self.twitsnap_service.send_user_credentials_to_auth(
                 user.uid, register_data.password
             )
-
-            await self.service.generate_register_pin(user.uid)
+            pin = self.service.generate_pin()
+            await self.service.generate_register_pin(user.uid, pin)
 
         except Exception as e:
             self.service.delete_user_by_id(user.uid)
