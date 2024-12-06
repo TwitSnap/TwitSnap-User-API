@@ -2,18 +2,18 @@ import sys
 import os
 import pytest
 
-
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
-from repositories import user_repository
-from config.settings import init_database
+from services.user_service import user_service
+from repositories.user_repository import UserRepository
+from config.settings import init_database, REGISTER_PIN_TTL, redis_conn
 from fastapi.testclient import TestClient
-from neomodel import config, db
+from neomodel import db
 from main import create_app
 from models.user import User 
 
 init_database()
 app = create_app()
+user_repository = UserRepository(db)
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
@@ -25,7 +25,8 @@ def test_register_user():
             "email": "testuser@example.com",
             "password": "stringst",
             "phone": "string",
-            "country": "AR"}
+            "country": "AR",
+            "interests": ["entretenimiento"]}
 
     response = client.post("/api/v1/register", json=data)
     
@@ -51,6 +52,16 @@ def test_register_user_with_existing_email():
     
     response = client.post("/api/v1/register", json=data)
     assert response.status_code == 409
+def test_register_user_with_invalid_interests():
+    data = {"username": "testuser",
+            "email": "testuser@example.com",
+            "password": "stringst",
+            "phone": "string",
+            "country": "AR",
+            "interests": ["random"]}
+
+    response = client.post("/api/v1/register", json=data)
+    assert response.status_code == 422
 
 def test_register_with_invalid_email():
     data = {"username": "testuser",
@@ -60,11 +71,24 @@ def test_register_with_invalid_email():
 
 def test_refresh_pin_register():
     user = create_user()
-    response = client.post(f"/api/v1/user/{user.uid}/pin")
+    response = client.post(f"/api/v1/users/{user.uid}/pin")
     assert response.status_code == 200
 
-def test_register_confirmation():
+@pytest.mark.asyncio
+async def test_verify_pin_register():
+    user = create_user()
+    pin = user_service.generate_pin()
+    # await user_service.generate_register_pin(user.uid, pin) falla notis
+    redis_conn.setex(f"{user.uid}", REGISTER_PIN_TTL, pin)
 
+    json = {
+        "id": user.uid,
+        "pin": pin
+    }
+    response = client.post(f"/api/v1/users/confirmation", json = json)
+    user = user_repository.find_user_by_id(user.uid)
+    assert response.status_code == 200
+    assert user.verified == True
 
 # utils
 def create_user(username="testuser", email="testuser@example.com", phone="1234567890", country="AR"):

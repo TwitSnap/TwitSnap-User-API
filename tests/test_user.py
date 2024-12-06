@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 from repositories.user_repository import UserRepository
 from config.settings import init_database
 from fastapi.testclient import TestClient
-from neomodel import config, db
+from neomodel import db
 from main import create_app
 from models.user import User
 
@@ -114,9 +114,9 @@ def test_get_followers():
     assert response.status_code == 200
     assert response.json()["followers"][0]["username"] == "testuser1"
 
-def test_get_user_by_username():
+async def test_get_user_by_username():
     user = create_user(username = "testuser")
-    user_from_db = user_repository.get_user_by_username(user.username)
+    user_from_db =  await user_repository.get_user_by_username(user.username)
     assert user_from_db.username == user.username
 # utils
 def register_test_user(username="testuser", email="testuser@example.com", phone="1234567890", password="stringst"):

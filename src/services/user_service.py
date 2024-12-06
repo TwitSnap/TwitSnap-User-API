@@ -32,7 +32,7 @@ class UserService:
     async def create_user(self, register_request: dict):
         logger.debug(f"Attempting to create user with data: {register_request}")
         user = User(**register_request).save()
-        await self.update_user_interests(
+        user = await self.update_user_interests(
             user.uid, register_request.get("interests", [])
         )
         logger.debug(f"User created with id: {user.uid}")
@@ -337,7 +337,8 @@ class UserService:
                 user.interests.connect(interest)
             else:
                 logger.warning(f"Interest '{i}' not found and could not be connected.")
-
+        user.save()
+        return user
     def delete_user_by_id(self, uid):
         self.user_repository.delete_user_by_id(uid)
 
