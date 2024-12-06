@@ -46,6 +46,7 @@ class TwitsnapService:
         logger.debug(
             f"[NotificationService] - Attempt to send pin - response: {res.text}"
         )
+
     async def send_new_follower_notification(self, username: str, device_token: list[str]):
         url = NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH
         req = Notification(
@@ -63,3 +64,4 @@ class TwitsnapService:
         )
 
 twitsnap_service = TwitsnapService()
+

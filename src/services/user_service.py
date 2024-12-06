@@ -238,7 +238,7 @@ class UserService:
 
         my_user.following.connect(user)
         destination = user.device_token
-        await self.twitsnap_service.send_new_follower_notification()
+        await self.twitsnap_service.send_new_follower_notification(user.username, destination)
         logger.debug(
             f"User with id: {my_uid}- name:{my_user.username} is following user with id: {user_id}, name: {user.username}"
         )

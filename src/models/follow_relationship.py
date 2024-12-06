@@ -1,4 +1,4 @@
-from neomodel import StructuredNode, DateTimeProperty, StructuredRel
+from neomodel import DateTimeProperty, StructuredRel
 
 
 class FollowRelationship(StructuredRel):

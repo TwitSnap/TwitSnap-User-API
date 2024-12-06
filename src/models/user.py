@@ -29,4 +29,3 @@ class User(StructuredNode):
     interests = RelationshipTo(Interest, "HAS_INTEREST")
     created_at = DateTimeProperty(default_now=True)
     device_token = ArrayProperty(StringProperty(), default=[])
-

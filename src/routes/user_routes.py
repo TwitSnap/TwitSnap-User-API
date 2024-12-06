@@ -1,15 +1,12 @@
 from typing import Optional, List
 from dtos.register.verify_register_pin import VerifyRegisterPin
-from fastapi import APIRouter, Query, Request, status, Depends, Header
+from fastapi import APIRouter, Query, Request, status, Depends
 from dtos.auth.aurh_user_response import AuthUserResponse
 from dtos.user.follow_request import FollowRequest
 from dtos.user.update_user_form import UpdateUserForm
 from dtos.user.user_profile import UserProfile
 from dtos.user.user_profile_preview import UserProfilePreview
 from controllers.user_controller import user_controller
-
-from models.interest import Interest
-
 from dtos.user.user_stats import UserStats
 
 user_router = APIRouter()

@@ -1,15 +1,16 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 import pytest
+sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
+from config.settings import init_database
 from fastapi.testclient import TestClient
 from neomodel import config, db
 from main import create_app
 from models.user import User 
 
+init_database()
 app = create_app()
 client = TestClient(app)
-config.DATABASE_URL = DB_TEST_URL = 'bolt://neo4j:testpassword@localhost:7687'
 
 @pytest.fixture(autouse=True)
 def clear_db():
@@ -20,7 +21,7 @@ def test_register_user():
             "email": "testuser@example.com",
             "password": "stringst",
             "phone": "string",
-            "country": "string"}
+            "country": "AR"}
 
     response = client.post("/api/v1/register", json=data)
     
@@ -37,7 +38,7 @@ def test_register_user_with_existing_email():
             "email": "testuser@example.com",
             "password": "stringst",
             "phone": "string",
-            "country": "string"}
+            "country": "AR"}
 
     response = client.post("/api/v1/register", json=data)
     

@@ -48,7 +48,7 @@ def init_database():
     try:
         config.DATABASE_URL = f"{DB_PROTOCOL}://{DB_USERNAME}:{DB_PASSWORD}@{DB_URI}"
         db.set_connection(config.DATABASE_URL)
-        config.connection_timeout = 20
+        config.connection_timeout = 60
         logger.info(f"Connecting to database at {config.DATABASE_URL}")
 
         for interest in INTERESTS:
