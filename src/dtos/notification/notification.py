@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class RegisterPin(BaseModel):
+class Notification(BaseModel):
     type: str
     params: dict
     notifications: dict

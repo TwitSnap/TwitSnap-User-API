@@ -1,6 +1,8 @@
 import sys
 import os
-from config.settings import *
+
+from config.settings import init_database
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
 import pytest
 from fastapi.testclient import TestClient
@@ -8,9 +10,9 @@ from neomodel import config, db
 from main import create_app
 from models.user import User
 
+init_database()
 app = create_app()
 client = TestClient(app)
-config.DATABASE_URL = DB_TEST_URL = 'bolt://neo4j:testpassword@localhost:7687'
 
 @pytest.fixture(autouse=True)
 def clear_db():
