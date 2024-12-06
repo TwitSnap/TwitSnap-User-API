@@ -23,15 +23,19 @@ class ExceptionHandler:
             )
         elif isinstance(exc, RequestValidationError):
             logger.debug(f"Validation error : {exc.errors()}")
+            message = exc.errors()[0]["msg"]
+            message = message.replace("Value error, ", "").strip()
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": str(exc)},
+                content={"message": str(message)},
             )
         elif isinstance(exc, ValidationError):
             logger.debug(f"Validation error: {exc.errors()}")
+            message = exc.errors()[0]["msg"]
+            message = message.replace("Value error, ", "").strip()
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                content={"detail": str(exc)},
+                content={"message": str(message)},
             )
         elif isinstance(exc, BadRequestException):
             logger.debug(f"Bad request: {exc}")

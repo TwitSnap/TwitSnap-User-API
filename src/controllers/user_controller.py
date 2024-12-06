@@ -48,7 +48,7 @@ class UserController:
                 user = await self.user_service.get_users_by_username(update_form.username)
                 if len(user) > 0:
                     raise ConflictException(
-                        detail=f"The username {update_form.username} is already taken."
+                        message=f"The username {update_form.username} is already taken."
                     )
 
             new_user_data = EditUser(
@@ -177,7 +177,7 @@ class UserController:
         user_id = req.headers.get("user_id")
         logger.debug(f"User id found in headers: {user_id}")
         if user_id is None:
-            raise BadRequestException(detail="User id not found in headers")
+            raise BadRequestException(message="User id not found in headers")
         return user_id
 
 
