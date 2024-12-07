@@ -51,8 +51,8 @@ class TwitsnapService:
         url = NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH
         req = Notification(
             type="push",
-            params={"title": "notificacion push nuevo seguidor",
-                    "body": f"{username} ahora te sigue"},
+            params={"title": "Tienes nuevo seguidor",
+                    "body": f" ahora te sigue {username}"},
             notifications={"type": "push", "destinations": device_token},
         )
         logger.debug(
