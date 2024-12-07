@@ -13,6 +13,7 @@ DB_URI = os.getenv("DB_HOST_PORT")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 AUTH_API_URI = os.getenv("AUTH_API_URI")
+ENV = os.getenv("ENV")
 AUTH_API_REGISTER_PATH = os.getenv("AUTH_API_REGISTER_PATH")
 AUTH_API_LOGIN_PATH = os.getenv("AUTH_API_LOGIN_PATH")
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -41,6 +42,13 @@ INTERESTS = [
     "comida",
     "salud",
 ]
+if ENV == "dev":
+    DB_PASSWORD = os.getenv("DB_PASSWORD_TEST")
+    DB_URI = os.getenv("DB_HOST_PORT_TEST")
+else:
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_URI = os.getenv("DB_HOST_PORT")
+
 logger = Logger(LOG_LEVEL, LOG_FILE)
 
 
