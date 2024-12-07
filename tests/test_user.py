@@ -21,7 +21,7 @@ client = CustomTestClient(app)
 
 @pytest.fixture(autouse=True)
 def clear_db():
-    db.cypher_query("MATCH (n) DETACH DELETE n")
+    db.cypher_query("MATCH (n:User) DETACH DELETE n")
 
 def test_get_user_id_by_email():
     user = create_user()
@@ -44,15 +44,18 @@ def test_edit_my_user():
         "username": "updateduser",
         "phone": "0987654321",
         "country": "BR",
-        "description": "newdescription"
+        "description": "newdescription",
+        "interests": ["comida"]
     }
     response = client.patch("/api/v1/users/me", data=data, headers=headers)
     assert response.status_code == 200
     updated_user = user_repository.find_user_by_id(user.uid)
+    interests = [interest.name for interest in updated_user.interests]
     assert updated_user.username == "updateduser"
     assert updated_user.phone == "0987654321"
     assert updated_user.country == "BR"
     assert updated_user.description == "newdescription"
+    assert interests == ["comida"]
 
 def test_get_user_by_id():
     user = create_user()
@@ -67,8 +70,8 @@ def test_follow():
     user2 = create_user(username="testuser2", email="Test2")
     headers = {"user_id": user1.uid}
     data = {"id": user2.uid}
-    # response = client.post("/api/v1/users/me/following", json=data, headers=headers)
-    user1.following.connect(user2)
+    response = client.post("/api/v1/users/me/following", json=data, headers=headers)
+    # user1.following.connect(user2)
     user1 = user_repository.find_user_by_id(user1.uid)
     user2 = user_repository.find_user_by_id(user2.uid)
     assert user2 in user1.following
@@ -114,10 +117,12 @@ def test_get_followers():
     assert response.status_code == 200
     assert response.json()["followers"][0]["username"] == "testuser1"
 
+@pytest.mark.asyncio
 async def test_get_user_by_username():
     user = create_user(username = "testuser")
     user_from_db =  await user_repository.get_user_by_username(user.username)
     assert user_from_db.username == user.username
+
 # utils
 def register_test_user(username="testuser", email="testuser@example.com", phone="1234567890", password="stringst"):
     data = {

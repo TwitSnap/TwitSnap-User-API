@@ -18,7 +18,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def clear_db():
-    db.cypher_query("MATCH (n) DETACH DELETE n")
+    db.cypher_query("MATCH (n:User) DETACH DELETE n")
 
 def test_register_user():
     data = {"username": "testuser",

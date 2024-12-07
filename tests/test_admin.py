@@ -18,7 +18,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def clear_db():
-    db.cypher_query("MATCH (n) DETACH DELETE n")
+    db.cypher_query("MATCH (n:User) DETACH DELETE n")
 
 
 def test_ban_or_unban_user():
@@ -34,6 +34,12 @@ def test_ban_or_unban_user():
     assert response.status_code == 204
     user = user_repository.find_user_by_id(user.uid)
     assert user.is_banned == False
+
+def test_get_all_users():
+    user = create_user()
+    response = client.get(url = f"/api/v1/admin/users",)
+    assert response.status_code == 200
+    assert response.json()["total_users"] == 1
 
 def create_user(username="testuser", email="testuser@example.com", phone="1234567890", country="AR"):
     user = User(username=username, email=email, phone=phone,country=country)
