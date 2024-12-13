@@ -7,6 +7,8 @@ from exceptions.conflict_exception import ConflictException
 from exceptions.resource_not_found_exception import ResourceNotFoundException
 from config.settings import logger
 
+from exceptions.no_auth_exception import UnauthorizedException
+
 
 class ExceptionHandler:
     @staticmethod
@@ -28,6 +30,11 @@ class ExceptionHandler:
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 content={"message": str(message)},
+            )
+        elif isinstance(exc, UnauthorizedException):
+            logger.debug(f"Unauthorized error: {exc}")
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED, content={"message": exc.detail}
             )
         elif isinstance(exc, ValidationError):
             logger.debug(f"Validation error: {exc.errors()}")

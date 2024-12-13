@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Query
+from fastapi import APIRouter, status, Query, Request
 from controllers.user_controller import user_controller
 from dtos.user.user_profile import UserProfile
 from typing import Optional
@@ -29,8 +29,8 @@ async def get_metrics(
     response_model=UserProfile,
     response_model_exclude_none=True,
 )
-async def get_user_by_id_for_admin(id: str):
-    return await user_controller.get_user_by_id_admin(id)
+async def get_user_by_id_for_admin(request:Request, id: str):
+    return await user_controller.get_user_by_id_admin(request, id)
 
 
 @admin_router.get(
@@ -39,5 +39,5 @@ async def get_user_by_id_for_admin(id: str):
     response_model=GetUsers,
     response_model_exclude_none=True,
 )
-async def get_all_users(offset: int = Query(0, ge=0), limit: int = Query(10, gt=0), is_banned: Optional[bool] = None):
-    return await user_controller.get_all_users(offset, limit, is_banned)
+async def get_all_users(request: Request, offset: int = Query(0, ge=0), limit: int = Query(10, gt=0), is_banned: Optional[bool] = None):
+    return await user_controller.get_all_users(request, offset, limit, is_banned)

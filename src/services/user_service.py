@@ -49,6 +49,7 @@ class UserService:
     async def get_user_by_email(self, email):
         logger.debug(f"Attempting to get user id by email: {email}")
         user = self.user_repository.find_user_by_email(email)
+
         if user is None:
             logger.debug(f"User not found with email: {email}")
             raise ResourceNotFoundException(

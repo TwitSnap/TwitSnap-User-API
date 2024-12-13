@@ -5,12 +5,15 @@ from dtos.register.user_register import UserRegister
 from dtos.user.edit_user import EditUser
 from dtos.user.update_user_form import UpdateUserForm
 from exceptions.bad_request_exception import BadRequestException
+from google.api_core.exceptions import Unauthorized
 from services.user_service import user_service
 from exceptions.exception_handler import ExceptionHandler
 from config.settings import logger
 
 from exceptions.conflict_exception import ConflictException
 
+from exceptions.no_auth_exception import UnauthorizedException
+from external.twitsnap_service import twitsnap_service
 
 class UserController:
     def __init__(self, user_service):
@@ -22,8 +25,11 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def get_user_by(self, email: str):
+    async def get_user_by(self, request:Request, email: str):
         try:
+            api_key = self.get_api_key_from_header(request)
+            if api_key:
+                await self.validate_api_key(api_key)
             return await self.user_service.get_user_by_email(email)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
@@ -31,6 +37,9 @@ class UserController:
     # endpoints that requires user_id from header
     async def get_user_by_id(self, request: Request, id: str):  # type: ignore
         try:
+            api_key = self.get_api_key_from_header(request)
+            if api_key:
+                await self.validate_api_key(api_key)
             my_uid: str | None = self.get_current_user(request)
             if id == "me" or id == my_uid:
                 logger.debug(f"Getting my user with id: {my_uid}")
@@ -101,14 +110,21 @@ class UserController:
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def get_user_by_id_admin(self, user_id: str):
+    async def get_user_by_id_admin(self,request:Request, user_id: str):
         try:
+            api_key = self.get_api_key_from_header(request)
+            if api_key:
+                await self.validate_api_key(api_key)
             return await self.user_service.get_user_by_id_admin(user_id)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
 
-    async def get_all_users(self, offset: int, limit: int, is_banned: bool = None):
+    async def get_all_users(self,request:Request, offset: int, limit: int, is_banned: bool = None):
         try:
+            api_key = self.get_api_key_from_header(request)
+            if api_key:
+                await self.validate_api_key(api_key)
+
             return await self.user_service.get_all_users(offset, limit, is_banned)
         except Exception as e:
             return ExceptionHandler.handle_exception(e)
@@ -140,6 +156,10 @@ class UserController:
 
     async def get_following(self, request: Request, id: str, offset: int, limit: int):
         try:
+            api_key = self.get_api_key_from_header(request)
+            if api_key:
+                await self.validate_api_key(api_key)
+
             my_uid: str | None = self.get_current_user(request)
             if id == "me" or id == my_uid:
                 logger.debug(f"Getting my following with id: {my_uid}")
@@ -180,5 +200,17 @@ class UserController:
             raise BadRequestException(message="User id not found in headers")
         return user_id
 
+    def get_api_key_from_header(self, req: Request):
+        api_key = req.headers.get("api_key")
+        logger.debug(f"Api key found in headers: {api_key}")
+        if api_key is None:
+           logger.error("Api key not found in headers")
+           return None
+        return api_key
 
+    async def validate_api_key(self, api_key):
+        if api_key:
+            res = await twitsnap_service.verify_api_key(api_key)
+            if res["isValid"] == False:
+                raise UnauthorizedException(detail="Invalid API key")
 user_controller = UserController(user_service)

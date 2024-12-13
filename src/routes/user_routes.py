@@ -17,8 +17,8 @@ user_router = APIRouter()
 @user_router.get(
     "/auth", status_code=status.HTTP_200_OK, response_model=AuthUserResponse
 )
-async def get_user_auth_status_by_email(email: str):
-    return await user_controller.get_user_by(email)
+async def get_user_auth_status_by_email(request: Request, email: str):
+    return await user_controller.get_user_by(request, email)
 
 
 # routes for users
