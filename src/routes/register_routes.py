@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Request
 from dtos.register.google_register import GoogleRegister
 from dtos.user.user_profile import UserProfile
 from controllers.register_controller import register_controller
@@ -18,5 +18,5 @@ async def register(user_register_data: UserRegister):
 
 
 @register_router.post("/google", status_code=status.HTTP_201_CREATED)
-async def register_with_google(token: GoogleRegister):
-    return await register_controller.register_with_google(token)
+async def register_with_google(request:Request, token: GoogleRegister):
+    return await register_controller.register_with_google(request, token)
