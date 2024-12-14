@@ -12,7 +12,7 @@ class Requester:
         json_body: Optional[Dict[str, Any]] = None,
     ) -> Any:
         async with httpx.AsyncClient() as client:
-            logger.debug(f"Attempting POST request to {url} - request_body:{json_body}")
+            logger.debug(f"Attempting POST request to {url} - request_body:{json_body}, headers:{headers}")
             response = await client.post(url, headers=headers, json=json_body)
             logger.debug(
                 f"Attempt POST request to {url} - status code {response.status_code}"
