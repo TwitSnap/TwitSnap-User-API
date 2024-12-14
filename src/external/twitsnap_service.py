@@ -55,6 +55,7 @@ class TwitsnapService:
 
     async def send_new_follower_notification(self, username: str, device_token: list[str]):
         url = NOTIFICATION_API_URI + NOTIFICATION_API_SEND_PATH
+        header = {"api_key": API_KEY}
         req = Notification(
             type="push",
             params={"title": "Tienes nuevo seguidor",
@@ -64,7 +65,8 @@ class TwitsnapService:
         logger.debug(
             f"[NotificationService] - Attempting to send new follower notification to {device_token} with data: {req.model_dump()}"
         )
-        res = await self.requester.post(url, json_body=req.model_dump())
+
+        res = await self.requester.post(url, json_body=req.model_dump(), headers=header)
         logger.debug(
             f"[NotificationService] - Attempt to send new follower notification - response: {res.text}"
         )
